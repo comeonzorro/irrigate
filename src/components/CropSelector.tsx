@@ -1,24 +1,22 @@
 "use client";
 
-import type { PlotConfig } from "@/lib/types";
-import {
-  getRecommendedVarieties,
-  getVarietiesForRegion,
-  getVariety,
-} from "@/lib/data/crops";
+import type { PublicVariety, PlotConfig } from "@/lib/types";
 
 interface CropSelectorProps {
   config: PlotConfig;
+  varieties: PublicVariety[];
+  recommended: PublicVariety[];
+  loading?: boolean;
   onChange: (varieties: string[]) => void;
 }
 
-export function CropSelector({ config, onChange }: CropSelectorProps) {
-  const recommended = getRecommendedVarieties(
-    config.regionId,
-    config.sunExposure
-  );
-  const allForRegion = getVarietiesForRegion(config.regionId);
-
+export function CropSelector({
+  config,
+  varieties,
+  recommended,
+  loading,
+  onChange,
+}: CropSelectorProps) {
   const toggle = (id: string) => {
     const next = config.selectedVarieties.includes(id)
       ? config.selectedVarieties.filter((v) => v !== id)
@@ -32,12 +30,18 @@ export function CropSelector({ config, onChange }: CropSelectorProps) {
         🥕 Cultures & variétés
       </h2>
       <p className="mb-4 text-sm text-emerald-700">
-        Adaptées à votre région et exposition. Plusieurs espèces ? Elles sont
-        réparties en bandes sur le plan — l&apos;app vous dira si la parcelle
-        est suffisante.
+        {config.postalCode.length === 5
+          ? "Variétés adaptées à votre zone climatique. Plusieurs espèces ? Répartition automatique en bandes."
+          : "Renseignez votre code postal pour filtrer les variétés régionales."}
       </p>
 
-      {recommended.length > 0 && (
+      {loading && (
+        <p className="text-sm text-emerald-600" role="status">
+          Chargement des variétés…
+        </p>
+      )}
+
+      {!loading && recommended.length > 0 && (
         <div className="mb-4">
           <h3 className="mb-2 text-xs font-semibold uppercase tracking-wide text-emerald-600">
             Recommandées pour vous
@@ -56,19 +60,23 @@ export function CropSelector({ config, onChange }: CropSelectorProps) {
         </div>
       )}
 
-      <h3 className="mb-2 text-xs font-semibold uppercase tracking-wide text-emerald-600">
-        Toutes les variétés disponibles
-      </h3>
-      <div className="flex flex-wrap gap-2">
-        {allForRegion.map((v) => (
-          <VarietyChip
-            key={v.id}
-            variety={v}
-            selected={config.selectedVarieties.includes(v.id)}
-            onToggle={() => toggle(v.id)}
-          />
-        ))}
-      </div>
+      {!loading && varieties.length > 0 && (
+        <>
+          <h3 className="mb-2 text-xs font-semibold uppercase tracking-wide text-emerald-600">
+            Toutes les variétés disponibles
+          </h3>
+          <div className="flex flex-wrap gap-2">
+            {varieties.map((v) => (
+              <VarietyChip
+                key={v.id}
+                variety={v}
+                selected={config.selectedVarieties.includes(v.id)}
+                onToggle={() => toggle(v.id)}
+              />
+            ))}
+          </div>
+        </>
+      )}
     </section>
   );
 }
@@ -79,7 +87,7 @@ function VarietyChip({
   onToggle,
   highlight,
 }: {
-  variety: ReturnType<typeof getVariety> & object;
+  variety: PublicVariety;
   selected: boolean;
   onToggle: () => void;
   highlight?: boolean;
@@ -88,7 +96,7 @@ function VarietyChip({
     <button
       type="button"
       onClick={onToggle}
-      className={`rounded-full border px-3 py-1.5 text-sm transition ${
+      className={`rounded-full border px-3 py-1.5 text-sm transition focus:outline-none focus:ring-2 focus:ring-emerald-400 focus:ring-offset-2 ${
         selected
           ? "border-emerald-700 bg-emerald-600 text-white shadow-md"
           : highlight

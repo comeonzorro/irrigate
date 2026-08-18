@@ -3,14 +3,14 @@
 import { useState } from "react";
 import { Canvas } from "@react-three/fiber";
 import { OrbitControls, Html, PerspectiveCamera } from "@react-three/drei";
-import type { PlanResult, PlotConfig, PipeNode } from "@/lib/types";
-import { getVariety } from "@/lib/data/crops";
+import type { PlanResult, PlotConfig, PipeNode, VarietyDisplay } from "@/lib/types";
 import { getIrrigationMode } from "@/lib/data/irrigation";
 import { IrrigationSceneLegend } from "@/components/IrrigationLegend";
 
 interface PlotView3DProps {
   plan: PlanResult;
   config: PlotConfig;
+  varietyDisplay: Record<string, VarietyDisplay>;
   widthM: number;
   lengthM: number;
 }
@@ -24,7 +24,7 @@ const PIPE_COLORS: Record<string, string> = {
 
 type SceneLabels = "off" | "key" | "all";
 
-export function PlotView3D({ plan, config, widthM, lengthM }: PlotView3DProps) {
+export function PlotView3D({ plan, config, varietyDisplay, widthM, lengthM }: PlotView3DProps) {
   const mode = getIrrigationMode(config.irrigationModeId);
   const { plants, irrigation } = plan;
   const [showPlantEmojis, setShowPlantEmojis] = useState(false);
@@ -134,9 +134,9 @@ export function PlotView3D({ plan, config, widthM, lengthM }: PlotView3DProps) {
 
             <Ground width={widthM} length={lengthM} />
 
-            {plants.map((plant, i) => {
-              const variety = getVariety(plant.varietyId);
-              if (!variety) return null;
+          {plants.map((plant, i) => {
+            const variety = varietyDisplay[plant.varietyId];
+            if (!variety) return null;
               const px = (plant.x / plan.gridCols) * widthM;
               const pz = (plant.y / plan.gridRows) * lengthM;
               return (

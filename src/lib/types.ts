@@ -59,11 +59,54 @@ export interface IrrigationMode {
 export interface PlotConfig {
   widthM: number;
   lengthM: number;
+  postalCode: string;
   regionId: string;
   sunExposure: SunExposure;
   soilType: SoilType;
   selectedVarieties: string[];
   irrigationModeId: IrrigationModeId;
+}
+
+export interface RecommendedProduct {
+  id: string;
+  name: string;
+  category: "irrigation" | "semence" | "engrais" | "outil";
+  description: string;
+  priceEstimate: number;
+  reason: string;
+  shopHint: string;
+}
+
+export interface PublicVariety {
+  id: string;
+  name: string;
+  emoji: string;
+  color: string;
+  cropId: string;
+  recommended?: boolean;
+}
+
+export interface VarietyDisplay {
+  name: string;
+  emoji: string;
+  color: string;
+}
+
+export interface LocationInfo {
+  postalCode: string;
+  department: string;
+  departmentName: string;
+  cityHint: string;
+  regionId: string;
+  regionName: string;
+  climateZone: string;
+  avgRainfallMm: number;
+  frostFreeDays: number;
+}
+
+export interface PlanApiResponse {
+  plan: PlanResult;
+  varietyDisplay: Record<string, VarietyDisplay>;
 }
 
 export interface PlacedPlant {

@@ -1,3 +1,4 @@
+import "server-only";
 import type { CropVariety, IrrigationModeId, SunExposure, WaterPlan } from "../types";
 import { getVariety, getCrop } from "../data/crops";
 import {

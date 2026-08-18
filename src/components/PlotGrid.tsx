@@ -1,15 +1,14 @@
 "use client";
 
 import { useId, useState } from "react";
-import type { PlanResult } from "@/lib/types";
-import { getVariety } from "@/lib/data/crops";
+import type { PlanResult, PlotConfig, VarietyDisplay } from "@/lib/types";
 import { getIrrigationMode } from "@/lib/data/irrigation";
 import { IrrigationSceneLegend } from "@/components/IrrigationLegend";
-import type { PlotConfig } from "@/lib/types";
 
 interface PlotGridProps {
   plan: PlanResult;
   config: PlotConfig;
+  varietyDisplay: Record<string, VarietyDisplay>;
   widthM: number;
   lengthM: number;
 }
@@ -31,7 +30,7 @@ const NODE_STYLES: Record<string, { fill: string; stroke: string }> = {
   sprinkler: { fill: "#3b82f6", stroke: "#2563eb" },
 };
 
-export function PlotGrid({ plan, config, widthM, lengthM }: PlotGridProps) {
+export function PlotGrid({ plan, config, varietyDisplay, widthM, lengthM }: PlotGridProps) {
   const { gridCols, gridRows, plants, tileSizeM, irrigation, zones } = plan;
   const [showPlants, setShowPlants] = useState(true);
   const [showPipes, setShowPipes] = useState(true);
@@ -41,7 +40,7 @@ export function PlotGrid({ plan, config, widthM, lengthM }: PlotGridProps) {
 
   const cellMap = new Map<string, { emoji: string; color: string; name: string }>();
   for (const plant of plants) {
-    const variety = getVariety(plant.varietyId);
+    const variety = varietyDisplay[plant.varietyId];
     if (!variety) continue;
     const gx = Math.floor(plant.x);
     const gy = Math.floor(plant.y);
@@ -139,7 +138,7 @@ export function PlotGrid({ plan, config, widthM, lengthM }: PlotGridProps) {
             {showZones &&
               zones.length > 1 &&
               zones.map((zone) => {
-                const variety = getVariety(zone.varietyId);
+                const variety = varietyDisplay[zone.varietyId];
                 const x = zone.colStart * cellSize;
                 const y = zone.rowStart * cellSize;
                 const w = (zone.colEnd - zone.colStart) * cellSize;
@@ -317,7 +316,7 @@ export function PlotGrid({ plan, config, widthM, lengthM }: PlotGridProps) {
       {showPlants && (
         <div className="mt-3 flex flex-wrap gap-3 text-xs text-emerald-700">
           {Array.from(new Set(plants.map((p) => p.varietyId))).map((id) => {
-            const v = getVariety(id);
+            const v = varietyDisplay[id];
             if (!v) return null;
             return (
               <span key={id} className="flex items-center gap-1">

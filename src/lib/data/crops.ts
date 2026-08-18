@@ -1,3 +1,4 @@
+import "server-only";
 import type { Crop, CropVariety } from "../types";
 
 export const CROPS: Crop[] = [

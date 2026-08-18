@@ -1,3 +1,4 @@
+import "server-only";
 import type { Region } from "../types";
 
 export const REGIONS: Region[] = [

@@ -1,12 +1,15 @@
 "use client";
 
-import type { PlotConfig, SoilType } from "@/lib/types";
-import { COMMUNES, getRegion, getRegionHierarchy } from "@/lib/data/regions";
+import { useCallback, useState } from "react";
+import type { LocationInfo, PlotConfig, SoilType } from "@/lib/types";
+import { locatePostalCode } from "@/lib/api/client";
 import { SOIL_TYPES } from "@/lib/data/soil";
 
 interface SettingsPanelProps {
   config: PlotConfig;
+  location: LocationInfo | null;
   onChange: (patch: Partial<PlotConfig>) => void;
+  onLocation: (location: LocationInfo | null) => void;
 }
 
 const SOIL_ICONS: Record<SoilType, string> = {
@@ -16,9 +19,39 @@ const SOIL_ICONS: Record<SoilType, string> = {
   mixte: "🪴",
 };
 
-export function SettingsPanel({ config, onChange }: SettingsPanelProps) {
-  const region = getRegion(config.regionId);
-  const hierarchy = getRegionHierarchy(config.regionId);
+export function SettingsPanel({
+  config,
+  location,
+  onChange,
+  onLocation,
+}: SettingsPanelProps) {
+  const [locating, setLocating] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+
+  const handlePostalBlur = useCallback(async () => {
+    const cp = config.postalCode.trim();
+    if (cp.length === 0) {
+      onLocation(null);
+      onChange({ regionId: "france" });
+      setError(null);
+      return;
+    }
+    if (cp.replace(/\D/g, "").length !== 5) {
+      setError("Le code postal doit contenir 5 chiffres.");
+      return;
+    }
+    setLocating(true);
+    setError(null);
+    const result = await locatePostalCode(cp);
+    setLocating(false);
+    if (!result) {
+      setError("Code postal non reconnu.");
+      onLocation(null);
+      return;
+    }
+    onLocation(result);
+    onChange({ regionId: result.regionId, postalCode: result.postalCode });
+  }, [config.postalCode, onChange, onLocation]);
 
   return (
     <section
@@ -29,60 +62,67 @@ export function SettingsPanel({ config, onChange }: SettingsPanelProps) {
         ⚙️ Réglages
       </h2>
       <p className="mb-4 text-sm text-emerald-700" id="settings-desc">
-        Localité et type de terre influencent les recommandations de cultures,
-        l&apos;arrosage et les engrais.
+        Votre code postal adapte le climat, les variétés et les produits
+        recommandés.
       </p>
 
       <div className="space-y-5">
         <div>
-          <label htmlFor="locality-select" className="block text-sm font-medium text-emerald-800">
-            Localité
+          <label htmlFor="postal-code" className="block text-sm font-medium text-emerald-800">
+            Code postal
           </label>
-          <p id="locality-hint" className="mb-2 text-xs text-emerald-600">
-            Choisissez votre commune pour adapter le climat et les variétés.
+          <p id="postal-hint" className="mb-2 text-xs text-emerald-600">
+            France métropolitaine — 5 chiffres (ex. 94450)
           </p>
-          <select
-            id="locality-select"
-            aria-describedby="locality-hint locality-summary"
-            value={config.regionId}
-            onChange={(e) => onChange({ regionId: e.target.value })}
-            className="w-full rounded-lg border border-emerald-200 px-3 py-2.5 text-base focus:border-emerald-500 focus:outline-none focus:ring-2 focus:ring-emerald-300"
-          >
-            <optgroup label="Communes">
-              {COMMUNES.map((c) => {
-                const parent = c.parentId ? getRegion(c.parentId) : undefined;
-                return (
-                  <option key={c.id} value={c.id}>
-                    {c.name}
-                    {parent ? ` (${parent.name})` : ""}
-                  </option>
-                );
-              })}
-            </optgroup>
-            <optgroup label="Région ou pays (vue élargie)">
-              <option value="ile-de-france">Île-de-France</option>
-              <option value="auvergne-rhone-alpes">Auvergne-Rhône-Alpes</option>
-              <option value="nouvelle-aquitaine">Nouvelle-Aquitaine</option>
-              <option value="france">France (national)</option>
-            </optgroup>
-          </select>
+          <input
+            id="postal-code"
+            type="text"
+            inputMode="numeric"
+            autoComplete="postal-code"
+            maxLength={5}
+            placeholder="94450"
+            aria-describedby="postal-hint location-summary postal-error"
+            value={config.postalCode}
+            onChange={(e) => {
+              const v = e.target.value.replace(/\D/g, "").slice(0, 5);
+              onChange({ postalCode: v });
+              setError(null);
+            }}
+            onBlur={handlePostalBlur}
+            className="w-full rounded-lg border border-emerald-200 px-3 py-2.5 text-base tracking-widest focus:border-emerald-500 focus:outline-none focus:ring-2 focus:ring-emerald-300"
+          />
+          {error && (
+            <p id="postal-error" className="mt-1 text-sm text-red-700" role="alert">
+              {error}
+            </p>
+          )}
+          {locating && (
+            <p className="mt-2 text-sm text-emerald-600" role="status">
+              Localisation…
+            </p>
+          )}
           <p
-            id="locality-summary"
+            id="location-summary"
             className="mt-2 rounded-lg bg-emerald-50 px-3 py-2 text-sm text-emerald-800"
             role="status"
             aria-live="polite"
           >
-            {region && (
+            {location ? (
               <>
-                <strong>{region.name}</strong> — {region.climateZone},{" "}
-                {region.avgRainfallMm} mm/an, {region.frostFreeDays} jours sans
-                gel
-                {hierarchy.length > 1 && (
-                  <span className="block text-xs text-emerald-600 mt-0.5">
-                    Hiérarchie : {hierarchy.map((r) => r.name).join(" → ")}
-                  </span>
-                )}
+                <strong>
+                  {location.cityHint} ({location.postalCode})
+                </strong>
+                <span className="block text-emerald-700">
+                  {location.regionName} · {location.climateZone} ·{" "}
+                  {location.avgRainfallMm} mm/an · {location.frostFreeDays} j
+                  sans gel
+                </span>
               </>
+            ) : (
+              <span className="text-emerald-600">
+                Saisissez votre code postal pour personnaliser les
+                recommandations.
+              </span>
             )}
           </p>
         </div>
@@ -92,8 +132,7 @@ export function SettingsPanel({ config, onChange }: SettingsPanelProps) {
             Type de terre
           </legend>
           <p id="soil-hint" className="mb-3 text-xs text-emerald-600">
-            Sélectionnez le sol dominant de votre parcelle. Chaque option est
-            sélectionnable au clavier.
+            Sol dominant de votre parcelle.
           </p>
           <div
             role="radiogroup"
@@ -132,13 +171,7 @@ export function SettingsPanel({ config, onChange }: SettingsPanelProps) {
             aria-live="polite"
           >
             Drainage :{" "}
-            {SOIL_TYPES.find((s) => s.type === config.soilType)?.drainage} ·
-            Rétention eau :{" "}
-            {(
-              (SOIL_TYPES.find((s) => s.type === config.soilType)?.waterRetention ??
-                1) * 100
-            ).toFixed(0)}
-            %
+            {SOIL_TYPES.find((s) => s.type === config.soilType)?.drainage}
           </p>
         </fieldset>
       </div>

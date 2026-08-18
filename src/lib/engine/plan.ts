@@ -1,3 +1,4 @@
+import "server-only";
 import type { PlotConfig, PlanResult } from "../types";
 import { layoutPlants } from "./layout";
 import { layoutIrrigationPipes } from "./pipes";

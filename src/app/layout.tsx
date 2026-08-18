@@ -14,9 +14,18 @@ const jetbrains = JetBrains_Mono({
 });
 
 export const metadata: Metadata = {
-  title: "Irrigate — Planificateur de potager intelligent",
+  title: "Irrigate.fr — Planificateur de potager intelligent",
   description:
-    "Définissez votre parcelle, choisissez vos cultures et obtenez le plan d'arrosage parfait avec estimation de rendement.",
+    "Planifiez votre potager, calculez l'arrosage idéal et visualisez votre réseau d'irrigation en 2D et 3D. Code postal, cultures, rendement.",
+  metadataBase: new URL("https://irrigate.fr"),
+  openGraph: {
+    title: "Irrigate.fr",
+    description: "Planificateur de potager et d'irrigation",
+    url: "https://irrigate.fr",
+    siteName: "Irrigate.fr",
+    locale: "fr_FR",
+    type: "website",
+  },
 };
 
 export default function RootLayout({ children }: LayoutProps<"/">) {

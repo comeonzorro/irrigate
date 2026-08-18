@@ -1,10 +1,16 @@
 "use client";
 
 import dynamic from "next/dynamic";
-import { useMemo, useState } from "react";
-import type { PlotConfig } from "@/lib/types";
-import { generatePlan } from "@/lib/engine/plan";
-import { getRegion } from "@/lib/data/regions";
+import { useCallback, useEffect, useState } from "react";
+import type {
+  LocationInfo,
+  PlanResult,
+  PlotConfig,
+  PublicVariety,
+  RecommendedProduct,
+  VarietyDisplay,
+} from "@/lib/types";
+import { fetchPlan, fetchProducts, fetchVarieties } from "@/lib/api/client";
 import { Header } from "@/components/Header";
 import { SettingsPanel } from "@/components/SettingsPanel";
 import { PlotSetup } from "@/components/PlotSetup";
@@ -14,6 +20,8 @@ import { LayoutAdviceBanner } from "@/components/LayoutAdviceBanner";
 import { PlotGrid } from "@/components/PlotGrid";
 import { ResultsPanel } from "@/components/ResultsPanel";
 import { IrrigationSolutionsGuide } from "@/components/IrrigationSolutionsGuide";
+import { ProductRecommendations } from "@/components/ProductRecommendations";
+import { Footer } from "@/components/Footer";
 
 const PlotView3D = dynamic(
   () => import("@/components/PlotView3D").then((m) => m.PlotView3D),
@@ -27,13 +35,61 @@ const PlotView3D = dynamic(
   }
 );
 
+const EMPTY_PLAN: PlanResult = {
+  plants: [],
+  gridCols: 1,
+  gridRows: 1,
+  tileSizeM: 0.5,
+  plantCount: 0,
+  zones: [],
+  layoutAdvice: {
+    status: "ok",
+    message: "Configurez votre parcelle.",
+    varieties: [],
+  },
+  irrigation: {
+    segments: [],
+    nodes: [],
+    totalPipeLengthM: 0,
+    dripperCount: 0,
+  },
+  water: {
+    litersPerDay: 0,
+    litersPerWeek: 0,
+    litersPerMonth: 0,
+    sessionsPerWeek: 0,
+    minutesPerSession: 0,
+    estimatedWaterCostMonthly: 0,
+  },
+  yield: {
+    kgPerDay: 0,
+    kgPerWeek: 0,
+    kgPerMonth: 0,
+    revenuePerDay: 0,
+    revenuePerWeek: 0,
+    revenuePerMonth: 0,
+  },
+  fertilizer: {
+    type: "",
+    npk: "",
+    amountKg: 0,
+    frequency: "",
+    costEstimate: 0,
+    notes: "",
+  },
+  setupCost: 0,
+  monthlyOperatingCost: 0,
+  breakEvenMonths: Infinity,
+};
+
 const DEFAULT_CONFIG: PlotConfig = {
   widthM: 4,
   lengthM: 6,
-  regionId: "limeil-brevannes",
+  postalCode: "",
+  regionId: "france",
   sunExposure: "S",
   soilType: "mixte",
-  selectedVarieties: ["tomate-cerise-idf"],
+  selectedVarieties: [],
   irrigationModeId: "drip_buried",
 };
 
@@ -42,13 +98,70 @@ type ViewMode = "2d" | "3d" | "both";
 export function GardenPlanner() {
   const [config, setConfig] = useState<PlotConfig>(DEFAULT_CONFIG);
   const [viewMode, setViewMode] = useState<ViewMode>("both");
+  const [location, setLocation] = useState<LocationInfo | null>(null);
+  const [plan, setPlan] = useState<PlanResult>(EMPTY_PLAN);
+  const [varietyDisplay, setVarietyDisplay] = useState<
+    Record<string, VarietyDisplay>
+  >({});
+  const [varieties, setVarieties] = useState<PublicVariety[]>([]);
+  const [recommendedVarieties, setRecommendedVarieties] = useState<
+    PublicVariety[]
+  >([]);
+  const [products, setProducts] = useState<RecommendedProduct[]>([]);
+  const [planLoading, setPlanLoading] = useState(false);
+  const [varietiesLoading, setVarietiesLoading] = useState(false);
+  const [productsLoading, setProductsLoading] = useState(false);
 
-  const plan = useMemo(() => generatePlan(config), [config]);
-  const region = getRegion(config.regionId);
-
-  const updateConfig = (patch: Partial<PlotConfig>) => {
+  const updateConfig = useCallback((patch: Partial<PlotConfig>) => {
     setConfig((prev) => ({ ...prev, ...patch }));
-  };
+  }, []);
+
+  useEffect(() => {
+    let cancelled = false;
+    setVarietiesLoading(true);
+    fetchVarieties(config.regionId, config.sunExposure).then((data) => {
+      if (cancelled) return;
+      setVarieties(data.all);
+      setRecommendedVarieties(data.recommended);
+      setVarietiesLoading(false);
+    });
+    return () => {
+      cancelled = true;
+    };
+  }, [config.regionId, config.sunExposure]);
+
+  useEffect(() => {
+    let cancelled = false;
+    const timer = setTimeout(async () => {
+      setPlanLoading(true);
+      const result = await fetchPlan(config);
+      if (cancelled) return;
+      if (result) {
+        setPlan(result.plan);
+        setVarietyDisplay(result.varietyDisplay);
+      }
+      setPlanLoading(false);
+    }, 250);
+    return () => {
+      cancelled = true;
+      clearTimeout(timer);
+    };
+  }, [config]);
+
+  useEffect(() => {
+    let cancelled = false;
+    const timer = setTimeout(async () => {
+      setProductsLoading(true);
+      const data = await fetchProducts(config);
+      if (cancelled) return;
+      setProducts(data);
+      setProductsLoading(false);
+    }, 300);
+    return () => {
+      cancelled = true;
+      clearTimeout(timer);
+    };
+  }, [config]);
 
   return (
     <>
@@ -62,23 +175,35 @@ export function GardenPlanner() {
       <main id="main-content" className="mx-auto max-w-6xl flex-1 px-4 py-8">
         <div className="mb-8 rounded-2xl bg-gradient-to-r from-emerald-800 to-emerald-600 p-6 text-white shadow-lg">
           <h2 className="text-xl font-semibold">
-            {region
-              ? `Potager optimisé pour ${region.name}`
-              : "Planifiez votre potager"}
+            Votre potager, votre arrosage, votre récolte
           </h2>
           <p className="mt-2 max-w-2xl text-emerald-100">
-            Définissez parcelle, localité et sol dans les réglages. Visualisez
-            l&apos;implantation des tuyaux sur le plan 2D ou en 3D pour
-            préparer votre installation.
+            Planifiez votre parcelle en quelques clics. Entrez votre code postal,
+            choisissez vos cultures et visualisez le réseau d&apos;irrigation en
+            2D ou 3D.
           </p>
         </div>
 
+        {planLoading && (
+          <p className="sr-only" role="status" aria-live="polite">
+            Mise à jour du plan…
+          </p>
+        )}
+
         <div className="grid gap-6 lg:grid-cols-2">
           <div className="space-y-6">
-            <SettingsPanel config={config} onChange={updateConfig} />
+            <SettingsPanel
+              config={config}
+              location={location}
+              onChange={updateConfig}
+              onLocation={setLocation}
+            />
             <PlotSetup config={config} onChange={updateConfig} />
             <CropSelector
               config={config}
+              varieties={varieties}
+              recommended={recommendedVarieties}
+              loading={varietiesLoading}
               onChange={(selectedVarieties) =>
                 updateConfig({ selectedVarieties })
               }
@@ -141,6 +266,7 @@ export function GardenPlanner() {
               <PlotGrid
                 plan={plan}
                 config={config}
+                varietyDisplay={varietyDisplay}
                 widthM={config.widthM}
                 lengthM={config.lengthM}
               />
@@ -150,12 +276,19 @@ export function GardenPlanner() {
               <PlotView3D
                 plan={plan}
                 config={config}
+                varietyDisplay={varietyDisplay}
                 widthM={config.widthM}
                 lengthM={config.lengthM}
               />
             )}
 
             <ResultsPanel plan={plan} config={config} />
+
+            <ProductRecommendations
+              products={products}
+              loading={productsLoading}
+              regionName={location?.regionName}
+            />
 
             <IrrigationSolutionsGuide
               config={config}
@@ -166,15 +299,7 @@ export function GardenPlanner() {
           </div>
         </div>
 
-        <footer className="mt-12 border-t border-emerald-200 pt-6 text-center text-sm text-emerald-700">
-          <p>
-            La vue 3D aide à visualiser la profondeur des tuyaux enterrés avant
-            de creuser. Builder Arduino et catalogue matériel en V2.
-          </p>
-          <p className="mt-1 text-xs text-emerald-500">
-            Estimations indicatives — consultez un jardinier local pour affiner.
-          </p>
-        </footer>
+        <Footer />
       </main>
     </>
   );
