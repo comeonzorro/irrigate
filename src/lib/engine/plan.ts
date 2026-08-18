@@ -16,7 +16,8 @@ export function generatePlan(config: PlotConfig): PlanResult {
     config.widthM,
     config.lengthM,
     config.selectedVarieties,
-    config.sunExposure
+    config.sunExposure,
+    config.hasGreenhouse
   );
 
   const irrigation = layoutIrrigationPipes(
@@ -33,16 +34,23 @@ export function generatePlan(config: PlotConfig): PlanResult {
     config.sunExposure,
     config.soilType,
     config.regionId,
-    areaM2
+    areaM2,
+    config.hasGreenhouse
   );
 
-  const yieldEst = computeYield(plants, config.sunExposure);
+  const yieldEst = computeYield(
+    plants,
+    config.sunExposure,
+    config.hasGreenhouse
+  );
   const fertilizer = computeFertilizerPlan(
     config.soilType,
     areaM2,
     plants.length
   );
-  const setupCost = computeSetupCost(areaM2, config.irrigationModeId);
+  const setupCost =
+    computeSetupCost(areaM2, config.irrigationModeId) +
+    (config.hasGreenhouse ? Math.round(areaM2 * 12 * 100) / 100 : 0);
   const monthlyOperatingCost = computeMonthlyOperatingCost(
     water,
     fertilizer.costEstimate,

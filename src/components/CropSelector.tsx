@@ -39,6 +39,12 @@ export function CropSelector({
             : "Entrez votre code postal pour débloquer le catalogue régional."}
       </p>
 
+      {config.hasGreenhouse && (
+        <p className="mb-4 text-sm text-violet-800">
+          Mode serre actif — variétés supplémentaires marquées 🏠
+        </p>
+      )}
+
       {!loading && config.postalCode.length === 5 && varieties.length === 0 && (
         <p className="mb-4 rounded-lg bg-amber-50 px-3 py-2 text-sm text-amber-900">
           Aucune variété pour ce code postal — vérifiez le code saisi.
@@ -116,6 +122,9 @@ function VarietyChip({
       style={selected ? {} : { borderLeftColor: variety.color, borderLeftWidth: 3 }}
     >
       {variety.emoji} {variety.name}
+      {variety.requiresGreenhouse && (
+        <span className="ml-1 text-[10px] opacity-80">🏠</span>
+      )}
     </button>
   );
 }

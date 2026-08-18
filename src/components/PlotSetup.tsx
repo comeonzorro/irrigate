@@ -80,6 +80,26 @@ export function PlotSetup({ config, onChange }: PlotSetupProps) {
           ))}
         </div>
       </fieldset>
+
+      <div className="mt-4 rounded-xl border border-violet-200 bg-violet-50/80 p-4">
+        <label className="flex cursor-pointer items-start gap-3">
+          <input
+            type="checkbox"
+            checked={config.hasGreenhouse}
+            onChange={(e) => onChange({ hasGreenhouse: e.target.checked })}
+            className="mt-1 h-4 w-4 rounded border-violet-300 text-violet-600 focus:ring-violet-400"
+          />
+          <span>
+            <span className="font-medium text-violet-900">
+              🏠 Serre ou tunnel
+            </span>
+            <span className="mt-1 block text-sm text-violet-800">
+              Débloque tomates, poivrons, melons, aubergines… Idéal en Bretagne
+              ou climats frais pour étendre la saison.
+            </span>
+          </span>
+        </label>
+      </div>
     </section>
   );
 }

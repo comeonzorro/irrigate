@@ -19,7 +19,8 @@ export function computeGridDimensions(widthM: number, lengthM: number) {
   };
 }
 
-function sunMultiplier(sun: SunExposure): number {
+function sunMultiplier(sun: SunExposure, hasGreenhouse = false): number {
+  if (hasGreenhouse) return 1.0;
   const map: Record<SunExposure, number> = { S: 1.0, E: 0.85, O: 0.85, N: 0.6 };
   return map[sun];
 }
@@ -343,7 +344,8 @@ export function layoutPlants(
   widthM: number,
   lengthM: number,
   varietyIds: string[],
-  sun: SunExposure
+  sun: SunExposure,
+  hasGreenhouse = false
 ): {
   plants: PlacedPlant[];
   gridCols: number;
@@ -416,7 +418,7 @@ export function layoutPlants(
     varieties.length
   );
 
-  void sunMultiplier(sun);
+  void sunMultiplier(sun, hasGreenhouse);
   return {
     ...result,
     gridCols,

@@ -7,7 +7,13 @@ export async function GET(request: Request) {
   const regionId = searchParams.get("regionId") ?? "france";
   const sun = (searchParams.get("sun") ?? "S") as SunExposure;
   const postalCode = searchParams.get("postalCode") ?? undefined;
+  const hasGreenhouse = searchParams.get("hasGreenhouse") === "true";
 
-  const data = getPublicVarieties(regionId, sun, postalCode || undefined);
+  const data = getPublicVarieties(
+    regionId,
+    sun,
+    postalCode || undefined,
+    hasGreenhouse
+  );
   return NextResponse.json(data);
 }

@@ -12,6 +12,7 @@ export const CROPS: Crop[] = [
   { id: "basilic", name: "Basilic", category: "herbe", basePricePerKg: 25.0 },
   { id: "fraisier", name: "Fraisier", category: "fruit", basePricePerKg: 8.0 },
   { id: "melon", name: "Melon", category: "fruit", basePricePerKg: 3.5 },
+  { id: "aubergine", name: "Aubergine", category: "legume", basePricePerKg: 4.0 },
 ];
 
 export const VARIETIES: CropVariety[] = [
@@ -105,7 +106,6 @@ export const VARIETIES: CropVariety[] = [
     name: "Fraisier « Gariguette »",
     cropId: "fraisier",
     regionIds: ["ile-de-france"],
-    departmentIds: ["77", "78", "91", "92", "93", "94", "95"],
     sunPreference: ["S", "E", "O"],
     spacingCm: { row: 35, plant: 30 },
     waterLitersPerWeek: 5,
@@ -250,7 +250,6 @@ export const VARIETIES: CropVariety[] = [
     name: "Melon « Charentais »",
     cropId: "melon",
     regionIds: ["nouvelle-aquitaine"],
-    departmentIds: ["16", "17", "79", "86"],
     sunPreference: ["S"],
     spacingCm: { row: 150, plant: 100 },
     waterLitersPerWeek: 15,
@@ -331,6 +330,301 @@ export const VARIETIES: CropVariety[] = [
     color: "#82e0aa",
   },
 
+  // —— Bretagne (plein air — climat océanique) ——
+  {
+    id: "fraisier-ciflorette-bzh",
+    name: "Fraisier « Ciflorette »",
+    cropId: "fraisier",
+    regionIds: ["bretagne"],
+    sunPreference: ["S", "E", "O"],
+    spacingCm: { row: 35, plant: 30 },
+    waterLitersPerWeek: 5,
+    yieldKgPerPlant: 0.9,
+    daysToHarvest: 55,
+    season: "ete",
+    emoji: "🍓",
+    color: "#e84393",
+  },
+  {
+    id: "fraisier-charlotte-bzh",
+    name: "Fraisier « Charlotte »",
+    cropId: "fraisier",
+    regionIds: ["bretagne"],
+    sunPreference: ["S", "E"],
+    spacingCm: { row: 35, plant: 30 },
+    waterLitersPerWeek: 5,
+    yieldKgPerPlant: 0.85,
+    daysToHarvest: 60,
+    season: "ete",
+    emoji: "🍓",
+    color: "#fd79a8",
+  },
+  {
+    id: "tomate-plein-air-bzh",
+    name: "Tomate « Andaine »",
+    cropId: "tomate",
+    regionIds: ["bretagne"],
+    sunPreference: ["S"],
+    spacingCm: { row: 90, plant: 60 },
+    waterLitersPerWeek: 9,
+    yieldKgPerPlant: 3.8,
+    daysToHarvest: 85,
+    season: "ete",
+    emoji: "🍅",
+    color: "#e17055",
+  },
+  {
+    id: "courgette-bzh",
+    name: "Courgette « Verte »",
+    cropId: "courgette",
+    regionIds: ["bretagne"],
+    sunPreference: ["S", "E"],
+    spacingCm: { row: 100, plant: 80 },
+    waterLitersPerWeek: 10,
+    yieldKgPerPlant: 7.0,
+    daysToHarvest: 55,
+    season: "ete",
+    emoji: "🥒",
+    color: "#00b894",
+  },
+  {
+    id: "salade-bzh",
+    name: "Laitue « Rougette de Montpellier »",
+    cropId: "salade",
+    regionIds: ["bretagne"],
+    sunPreference: ["E", "O", "N"],
+    spacingCm: { row: 30, plant: 25 },
+    waterLitersPerWeek: 3,
+    yieldKgPerPlant: 0.38,
+    daysToHarvest: 48,
+    season: "printemps",
+    emoji: "🥬",
+    color: "#55efc4",
+  },
+  {
+    id: "carotte-bzh",
+    name: "Carotte « Nantaise »",
+    cropId: "carotte",
+    regionIds: ["bretagne"],
+    sunPreference: ["S", "E", "O"],
+    spacingCm: { row: 30, plant: 5 },
+    waterLitersPerWeek: 2,
+    yieldKgPerPlant: 0.5,
+    daysToHarvest: 72,
+    season: "printemps",
+    emoji: "🥕",
+    color: "#e67e22",
+  },
+  {
+    id: "haricot-bzh",
+    name: "Haricot vert « Borlotto »",
+    cropId: "haricot",
+    regionIds: ["bretagne"],
+    sunPreference: ["S", "E"],
+    spacingCm: { row: 40, plant: 10 },
+    waterLitersPerWeek: 4,
+    yieldKgPerPlant: 1.1,
+    daysToHarvest: 62,
+    season: "ete",
+    emoji: "🫛",
+    color: "#00cec9",
+  },
+  {
+    id: "basilic-bzh",
+    name: "Basilic « Grand Vert »",
+    cropId: "basilic",
+    regionIds: ["bretagne"],
+    sunPreference: ["S", "E", "O"],
+    spacingCm: { row: 30, plant: 20 },
+    waterLitersPerWeek: 3,
+    yieldKgPerPlant: 0.28,
+    daysToHarvest: 45,
+    season: "ete",
+    emoji: "🌿",
+    color: "#2ecc71",
+  },
+
+  // —— Normandie & Pays de la Loire (océanique) ——
+  {
+    id: "fraisier-norm",
+    name: "Fraisier « Elsanta »",
+    cropId: "fraisier",
+    regionIds: ["normandie", "pays-de-la-loire"],
+    sunPreference: ["S", "E", "O"],
+    spacingCm: { row: 35, plant: 30 },
+    waterLitersPerWeek: 5,
+    yieldKgPerPlant: 0.75,
+    daysToHarvest: 58,
+    season: "ete",
+    emoji: "🍓",
+    color: "#d63031",
+  },
+  {
+    id: "tomate-norm",
+    name: "Tomate « Moneymaker »",
+    cropId: "tomate",
+    regionIds: ["normandie", "pays-de-la-loire"],
+    sunPreference: ["S", "E"],
+    spacingCm: { row: 85, plant: 55 },
+    waterLitersPerWeek: 9,
+    yieldKgPerPlant: 4.0,
+    daysToHarvest: 82,
+    season: "ete",
+    emoji: "🍅",
+    color: "#e74c3c",
+  },
+  {
+    id: "salade-norm",
+    name: "Laitue « Boston »",
+    cropId: "salade",
+    regionIds: ["normandie", "pays-de-la-loire"],
+    sunPreference: ["E", "O", "N"],
+    spacingCm: { row: 30, plant: 25 },
+    waterLitersPerWeek: 3,
+    yieldKgPerPlant: 0.36,
+    daysToHarvest: 50,
+    season: "printemps",
+    emoji: "🥬",
+    color: "#2ecc71",
+  },
+
+  // —— Serre / tunnel (débloqué avec l'option serre) ——
+  {
+    id: "gh-tomate-cerise",
+    name: "Tomate cerise « Sungold » (serre)",
+    cropId: "tomate",
+    regionIds: ["france"],
+    requiresGreenhouse: true,
+    sunPreference: ["S", "E", "O", "N"],
+    spacingCm: { row: 70, plant: 45 },
+    waterLitersPerWeek: 7,
+    yieldKgPerPlant: 5.5,
+    daysToHarvest: 70,
+    season: "ete",
+    emoji: "🍅",
+    color: "#f39c12",
+  },
+  {
+    id: "gh-tomate-beef",
+    name: "Tomate cœur de bœuf (serre)",
+    cropId: "tomate",
+    regionIds: ["france"],
+    requiresGreenhouse: true,
+    sunPreference: ["S", "E", "O", "N"],
+    spacingCm: { row: 90, plant: 65 },
+    waterLitersPerWeek: 11,
+    yieldKgPerPlant: 7.0,
+    daysToHarvest: 85,
+    season: "ete",
+    emoji: "🍅",
+    color: "#c0392b",
+  },
+  {
+    id: "gh-poivron",
+    name: "Poivron « Lamuyo » (serre)",
+    cropId: "poivron",
+    regionIds: ["france"],
+    requiresGreenhouse: true,
+    sunPreference: ["S", "E", "O", "N"],
+    spacingCm: { row: 55, plant: 40 },
+    waterLitersPerWeek: 7,
+    yieldKgPerPlant: 2.8,
+    daysToHarvest: 78,
+    season: "ete",
+    emoji: "🫑",
+    color: "#e74c3c",
+  },
+  {
+    id: "gh-concombre",
+    name: "Concombre « Marketmore » (serre)",
+    cropId: "courgette",
+    regionIds: ["france"],
+    requiresGreenhouse: true,
+    sunPreference: ["S", "E", "O", "N"],
+    spacingCm: { row: 100, plant: 50 },
+    waterLitersPerWeek: 12,
+    yieldKgPerPlant: 6.0,
+    daysToHarvest: 60,
+    season: "ete",
+    emoji: "🥒",
+    color: "#27ae60",
+  },
+  {
+    id: "gh-melon",
+    name: "Melon « Charentais » (serre)",
+    cropId: "melon",
+    regionIds: ["france"],
+    requiresGreenhouse: true,
+    sunPreference: ["S", "E", "O", "N"],
+    spacingCm: { row: 140, plant: 90 },
+    waterLitersPerWeek: 13,
+    yieldKgPerPlant: 2.2,
+    daysToHarvest: 90,
+    season: "ete",
+    emoji: "🍈",
+    color: "#f1c40f",
+  },
+  {
+    id: "gh-basilic",
+    name: "Basilic « Genovese » (serre)",
+    cropId: "basilic",
+    regionIds: ["france"],
+    requiresGreenhouse: true,
+    sunPreference: ["S", "E", "O", "N"],
+    spacingCm: { row: 25, plant: 18 },
+    waterLitersPerWeek: 3,
+    yieldKgPerPlant: 0.4,
+    daysToHarvest: 35,
+    season: "ete",
+    emoji: "🌿",
+    color: "#16a085",
+  },
+  {
+    id: "gh-fraisier",
+    name: "Fraisier remontant (serre)",
+    cropId: "fraisier",
+    regionIds: ["france"],
+    requiresGreenhouse: true,
+    sunPreference: ["S", "E", "O", "N"],
+    spacingCm: { row: 35, plant: 28 },
+    waterLitersPerWeek: 5,
+    yieldKgPerPlant: 1.0,
+    daysToHarvest: 50,
+    season: "perenne",
+    emoji: "🍓",
+    color: "#e84393",
+  },
+  {
+    id: "gh-aubergine",
+    name: "Aubergine « Black Beauty » (serre)",
+    cropId: "aubergine",
+    regionIds: ["france"],
+    requiresGreenhouse: true,
+    sunPreference: ["S", "E", "O", "N"],
+    spacingCm: { row: 70, plant: 50 },
+    waterLitersPerWeek: 8,
+    yieldKgPerPlant: 2.5,
+    daysToHarvest: 80,
+    season: "ete",
+    emoji: "🍆",
+    color: "#6c3483",
+  },
+  {
+    id: "gh-courgette",
+    name: "Courgette (serre)",
+    cropId: "courgette",
+    regionIds: ["france"],
+    requiresGreenhouse: true,
+    sunPreference: ["S", "E", "O", "N"],
+    spacingCm: { row: 90, plant: 70 },
+    waterLitersPerWeek: 9,
+    yieldKgPerPlant: 9.0,
+    daysToHarvest: 50,
+    season: "ete",
+    emoji: "🥒",
+    color: "#2ecc71",
+  },
+
   // —— France (fallback sans code postal précis) ——
   {
     id: "tomate-national",
@@ -395,33 +689,43 @@ function buildRegionHierarchy(regionId: string): string[] {
 }
 
 function matchesDepartment(
-  variety: CropVariety,
-  department: string | undefined
+  _variety: CropVariety,
+  _department: string | undefined
 ): boolean {
-  if (!variety.departmentIds || variety.departmentIds.length === 0) return true;
-  if (!department) return true;
-  return variety.departmentIds.includes(department);
+  return true;
 }
 
 export function getVarietiesForLocation(
   regionId: string,
-  postalCode?: string
+  postalCode?: string,
+  hasGreenhouse = false
 ): CropVariety[] {
   const hierarchy = buildRegionHierarchy(regionId);
-  const department = postalCode?.length === 5 ? postalCode.slice(0, 2) : undefined;
+  void postalCode;
 
-  const matched = VARIETIES.filter((v) => {
-    const regionMatch = v.regionIds.some((rid) => hierarchy.includes(rid));
-    if (!regionMatch) return false;
-    return matchesDepartment(v, department);
+  const outdoor = VARIETIES.filter((v) => {
+    if (v.requiresGreenhouse) return false;
+    return v.regionIds.some((rid) => hierarchy.includes(rid));
   });
 
-  if (regionId !== "france" && matched.length > 0) {
-    const regionalOnly = matched.filter((v) => !v.regionIds.includes("france"));
-    if (regionalOnly.length > 0) return regionalOnly;
+  let result = outdoor;
+  if (regionId !== "france" && outdoor.length > 0) {
+    const regional = outdoor.filter((v) => !v.regionIds.includes("france"));
+    if (regional.length > 0) result = regional;
   }
 
-  return matched;
+  if (hasGreenhouse) {
+    const greenhouse = VARIETIES.filter((v) => v.requiresGreenhouse);
+    const ids = new Set(result.map((v) => v.id));
+    for (const v of greenhouse) {
+      if (!ids.has(v.id)) {
+        result.push(v);
+        ids.add(v.id);
+      }
+    }
+  }
+
+  return result;
 }
 
 /** @deprecated use getVarietiesForLocation */
@@ -432,19 +736,24 @@ export function getVarietiesForRegion(regionId: string): CropVariety[] {
 export function getRecommendedVarieties(
   regionId: string,
   sun: string,
-  postalCode?: string
+  postalCode?: string,
+  hasGreenhouse = false
 ): CropVariety[] {
-  return getVarietiesForLocation(regionId, postalCode).filter((v) =>
-    v.sunPreference.includes(sun as SunExposure)
+  return getVarietiesForLocation(regionId, postalCode, hasGreenhouse).filter(
+    (v) => {
+      if (hasGreenhouse && v.requiresGreenhouse) return true;
+      return v.sunPreference.includes(sun as SunExposure);
+    }
   );
 }
 
 export function isVarietyAvailableInLocation(
   varietyId: string,
   regionId: string,
-  postalCode?: string
+  postalCode?: string,
+  hasGreenhouse = false
 ): boolean {
-  return getVarietiesForLocation(regionId, postalCode).some(
+  return getVarietiesForLocation(regionId, postalCode, hasGreenhouse).some(
     (v) => v.id === varietyId
   );
 }

@@ -1,5 +1,5 @@
 import "server-only";
-import type { SunExposure } from "@/lib/types";
+import type { PublicVariety, SunExposure } from "@/lib/types";
 import {
   getRecommendedVarieties,
   getVarietiesForLocation,
@@ -7,19 +7,11 @@ import {
 } from "@/lib/data/crops";
 import { getRegion } from "@/lib/data/regions";
 
-export interface PublicVariety {
-  id: string;
-  name: string;
-  emoji: string;
-  color: string;
-  cropId: string;
-  recommended?: boolean;
-}
-
 export function getPublicVarieties(
   regionId: string,
   sun: SunExposure,
-  postalCode?: string
+  postalCode?: string,
+  hasGreenhouse = false
 ): {
   all: PublicVariety[];
   recommended: PublicVariety[];
@@ -33,11 +25,16 @@ export function getPublicVarieties(
     emoji: v.emoji,
     color: v.color,
     cropId: v.cropId,
+    requiresGreenhouse: v.requiresGreenhouse,
   });
 
-  const all = getVarietiesForLocation(regionId, postalCode).map(toPublic);
+  const all = getVarietiesForLocation(regionId, postalCode, hasGreenhouse).map(
+    toPublic
+  );
   const recommendedIds = new Set(
-    getRecommendedVarieties(regionId, sun, postalCode).map((v) => v.id)
+    getRecommendedVarieties(regionId, sun, postalCode, hasGreenhouse).map(
+      (v) => v.id
+    )
   );
 
   const region = getRegion(regionId);

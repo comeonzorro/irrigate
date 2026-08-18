@@ -17,12 +17,13 @@ export function computeWaterPlan(
   sun: SunExposure,
   soilType: SoilType,
   regionId: string,
-  areaM2: number
+  areaM2: number,
+  hasGreenhouse = false
 ): WaterPlan {
   const mode = getIrrigationMode(irrigationModeId)!;
   const soil = getSoilProfile(soilType);
   const region = getRegion(regionId);
-  const sunMult = sunMultiplier(sun);
+  const sunMult = sunMultiplier(sun, hasGreenhouse);
 
   let baseLitersPerWeek = 0;
   for (const p of plants) {
@@ -92,7 +93,8 @@ export function computeMonthlyOperatingCost(
 
 export function computeYield(
   plants: { varietyId: string }[],
-  sun: SunExposure
+  sun: SunExposure,
+  hasGreenhouse = false
 ): {
   kgPerDay: number;
   kgPerWeek: number;
@@ -101,7 +103,8 @@ export function computeYield(
   revenuePerWeek: number;
   revenuePerMonth: number;
 } {
-  const sunMult = sunMultiplier(sun);
+  const sunMult = sunMultiplier(sun, hasGreenhouse);
+  const ghBoost = hasGreenhouse ? 1.15 : 1;
   let totalKgSeason = 0;
   let totalRevenueSeason = 0;
 
@@ -109,7 +112,7 @@ export function computeYield(
     const variety = getVariety(p.varietyId);
     if (!variety) continue;
     const crop = getCrop(variety.cropId);
-    const kg = variety.yieldKgPerPlant * sunMult;
+    const kg = variety.yieldKgPerPlant * sunMult * ghBoost;
     totalKgSeason += kg;
     totalRevenueSeason += kg * (crop?.basePricePerKg ?? 3);
   }

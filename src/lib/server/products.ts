@@ -106,6 +106,39 @@ const CATALOG: ProductDef[] = [
     regionIds: ["france", "ile-de-france", "auvergne-rhone-alpes", "nouvelle-aquitaine"],
   },
   {
+    id: "serre-tunnel",
+    name: "Serre tunnel 3 × 4 m + bâche",
+    category: "outil",
+    description: "Structure galvanisée, ventilation latérale — potager protégé",
+    priceEstimate: 189,
+    reason: "Débloque les variétés de serre dans votre région",
+    shopHint: "Jardinerie, Leroy Merlin, Jardiland…",
+    regionIds: [
+      "france",
+      "bretagne",
+      "normandie",
+      "hauts-de-france",
+      "ile-de-france",
+      "auvergne-rhone-alpes",
+      "nouvelle-aquitaine",
+      "pays-de-la-loire",
+      "occitanie",
+      "provence-alpes-cote-azur",
+      "grand-est",
+    ],
+  },
+  {
+    id: "fraisier-bzh-plants",
+    name: "Plants fraisier Ciflorette (x12)",
+    category: "semence",
+    description: "Variété bretonne — récolte estivale en plein air",
+    priceEstimate: 14,
+    reason: "Incontournable en Bretagne l'été",
+    shopHint: "Pépinière locale, coopérative maraîchère",
+    regionIds: ["bretagne"],
+    varietyIds: ["fraisier-ciflorette-bzh", "fraisier-charlotte-bzh"],
+  },
+  {
     id: "fraisier-gariguette",
     name: "Plants fraisier Gariguette (x6)",
     category: "semence",
@@ -162,6 +195,7 @@ export function getRecommendedProducts(config: PlotConfig): RecommendedProduct[]
         score += 2;
       }
       if (p.category === "engrais") score += 1;
+      if (config.hasGreenhouse && p.id === "serre-tunnel") score += 4;
       return { product: p, score };
     })
     .sort((a, b) => b.score - a.score);

@@ -89,6 +89,7 @@ const DEFAULT_CONFIG: PlotConfig = {
   regionId: "france",
   sunExposure: "S",
   soilType: "mixte",
+  hasGreenhouse: false,
   selectedVarieties: [],
   irrigationModeId: "drip_buried",
 };
@@ -123,7 +124,8 @@ export function GardenPlanner() {
     fetchVarieties(
       config.regionId,
       config.sunExposure,
-      config.postalCode
+      config.postalCode,
+      config.hasGreenhouse
     ).then((data) => {
       if (cancelled) return;
       setVarieties(data.all);
@@ -141,7 +143,7 @@ export function GardenPlanner() {
     return () => {
       cancelled = true;
     };
-  }, [config.regionId, config.sunExposure, config.postalCode]);
+  }, [config.regionId, config.sunExposure, config.postalCode, config.hasGreenhouse]);
 
   useEffect(() => {
     let cancelled = false;

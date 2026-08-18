@@ -27,8 +27,10 @@ export interface CropVariety {
   season: "printemps" | "ete" | "automne" | "hiver" | "perenne";
   emoji: string;
   color: string;
-  /** Départements (2 chiffres) où cette variété est particulièrement adaptée */
+  /** Départements où cette variété est un spécialité locale (info seulement) */
   departmentIds?: string[];
+  /** Uniquement disponible avec serre / tunnel */
+  requiresGreenhouse?: boolean;
 }
 
 export interface Crop {
@@ -65,6 +67,7 @@ export interface PlotConfig {
   regionId: string;
   sunExposure: SunExposure;
   soilType: SoilType;
+  hasGreenhouse: boolean;
   selectedVarieties: string[];
   irrigationModeId: IrrigationModeId;
 }
@@ -86,6 +89,7 @@ export interface PublicVariety {
   color: string;
   cropId: string;
   recommended?: boolean;
+  requiresGreenhouse?: boolean;
 }
 
 export interface VarietyDisplay {
