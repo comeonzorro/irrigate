@@ -107,6 +107,7 @@ export function GardenPlanner() {
   const [recommendedVarieties, setRecommendedVarieties] = useState<
     PublicVariety[]
   >([]);
+  const [varietiesRegionLabel, setVarietiesRegionLabel] = useState<string>("");
   const [products, setProducts] = useState<RecommendedProduct[]>([]);
   const [planLoading, setPlanLoading] = useState(false);
   const [varietiesLoading, setVarietiesLoading] = useState(false);
@@ -119,16 +120,28 @@ export function GardenPlanner() {
   useEffect(() => {
     let cancelled = false;
     setVarietiesLoading(true);
-    fetchVarieties(config.regionId, config.sunExposure).then((data) => {
+    fetchVarieties(
+      config.regionId,
+      config.sunExposure,
+      config.postalCode
+    ).then((data) => {
       if (cancelled) return;
       setVarieties(data.all);
       setRecommendedVarieties(data.recommended);
+      setVarietiesRegionLabel(data.regionLabel ?? config.regionId);
       setVarietiesLoading(false);
+
+      const validIds = new Set(data.all.map((v) => v.id));
+      setConfig((prev) => {
+        const filtered = prev.selectedVarieties.filter((id) => validIds.has(id));
+        if (filtered.length === prev.selectedVarieties.length) return prev;
+        return { ...prev, selectedVarieties: filtered };
+      });
     });
     return () => {
       cancelled = true;
     };
-  }, [config.regionId, config.sunExposure]);
+  }, [config.regionId, config.sunExposure, config.postalCode]);
 
   useEffect(() => {
     let cancelled = false;
@@ -203,6 +216,11 @@ export function GardenPlanner() {
               config={config}
               varieties={varieties}
               recommended={recommendedVarieties}
+              regionLabel={
+                location
+                  ? `${location.cityHint} · ${location.regionName}`
+                  : varietiesRegionLabel
+              }
               loading={varietiesLoading}
               onChange={(selectedVarieties) =>
                 updateConfig({ selectedVarieties })
@@ -283,20 +301,21 @@ export function GardenPlanner() {
             )}
 
             <ResultsPanel plan={plan} config={config} />
-
-            <ProductRecommendations
-              products={products}
-              loading={productsLoading}
-              regionName={location?.regionName}
-            />
-
-            <IrrigationSolutionsGuide
-              config={config}
-              onSelect={(irrigationModeId) =>
-                updateConfig({ irrigationModeId })
-              }
-            />
           </div>
+        </div>
+
+        <div className="mt-6 grid items-start gap-6 lg:grid-cols-2">
+          <ProductRecommendations
+            products={products}
+            loading={productsLoading}
+            regionName={location?.regionName}
+          />
+          <IrrigationSolutionsGuide
+            config={config}
+            onSelect={(irrigationModeId) =>
+              updateConfig({ irrigationModeId })
+            }
+          />
         </div>
 
         <Footer />

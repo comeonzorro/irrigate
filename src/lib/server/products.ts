@@ -1,5 +1,6 @@
 import "server-only";
 import type { IrrigationModeId, PlotConfig } from "@/lib/types";
+import { getRegion } from "@/lib/data/regions";
 
 export interface RecommendedProduct {
   id: string;
@@ -49,7 +50,7 @@ const CATALOG: ProductDef[] = [
     reason: "Recommandée pour votre région et exposition",
     shopHint: "Kokopelli, grainetiers locaux",
     regionIds: ["france", "ile-de-france", "auvergne-rhone-alpes", "nouvelle-aquitaine"],
-    varietyIds: ["tomate-cerise-idf"],
+    varietyIds: ["tomate-cerise-idf", "tomate-saint-pierre-ara", "tomate-rose-naq", "tomate-national"],
   },
   {
     id: "engrais-tomates",
@@ -108,12 +109,34 @@ const CATALOG: ProductDef[] = [
     id: "fraisier-gariguette",
     name: "Plants fraisier Gariguette (x6)",
     category: "semence",
-    description: "Variété référence Île-de-France et nord",
+    description: "Variété référence Île-de-France",
     priceEstimate: 12,
-    reason: "Calendrier de plantation adapté au Val-de-Marne",
+    reason: "Adaptée au climat francilien",
     shopHint: "Pépinière locale",
-    regionIds: ["ile-de-france", "france"],
+    regionIds: ["ile-de-france"],
     varietyIds: ["fraisier-idf"],
+  },
+  {
+    id: "melon-charentais-kit",
+    name: "Plants melon Charentais (x3)",
+    category: "semence",
+    description: "Spécialité océanique — plein soleil indispensable",
+    priceEstimate: 9,
+    reason: "Variété phare de Nouvelle-Aquitaine",
+    shopHint: "Grainetier / pépinière",
+    regionIds: ["nouvelle-aquitaine"],
+    varietyIds: ["melon-charentais-naq"],
+  },
+  {
+    id: "poivron-ara-kit",
+    name: "Plants poivron (x6)",
+    category: "semence",
+    description: "Californian Wonder — bon ensoleillement estival",
+    priceEstimate: 8,
+    reason: "Idéal en Auvergne-Rhône-Alpes",
+    shopHint: "Jardinerie",
+    regionIds: ["auvergne-rhone-alpes"],
+    varietyIds: ["poivron-ara"],
   },
 ];
 

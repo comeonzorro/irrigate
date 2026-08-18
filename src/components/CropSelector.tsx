@@ -6,6 +6,7 @@ interface CropSelectorProps {
   config: PlotConfig;
   varieties: PublicVariety[];
   recommended: PublicVariety[];
+  regionLabel?: string;
   loading?: boolean;
   onChange: (varieties: string[]) => void;
 }
@@ -14,6 +15,7 @@ export function CropSelector({
   config,
   varieties,
   recommended,
+  regionLabel,
   loading,
   onChange,
 }: CropSelectorProps) {
@@ -30,10 +32,18 @@ export function CropSelector({
         🥕 Cultures & variétés
       </h2>
       <p className="mb-4 text-sm text-emerald-700">
-        {config.postalCode.length === 5
-          ? "Variétés adaptées à votre zone climatique. Plusieurs espèces ? Répartition automatique en bandes."
-          : "Renseignez votre code postal pour filtrer les variétés régionales."}
+        {config.postalCode.length === 5 && regionLabel
+          ? `Catalogue ${regionLabel} — variétés adaptées à votre climat local.`
+          : config.postalCode.length === 5
+            ? "Variétés filtrées selon votre code postal."
+            : "Entrez votre code postal pour débloquer le catalogue régional."}
       </p>
+
+      {!loading && config.postalCode.length === 5 && varieties.length === 0 && (
+        <p className="mb-4 rounded-lg bg-amber-50 px-3 py-2 text-sm text-amber-900">
+          Aucune variété pour ce code postal — vérifiez le code saisi.
+        </p>
+      )}
 
       {loading && (
         <p className="text-sm text-emerald-600" role="status">

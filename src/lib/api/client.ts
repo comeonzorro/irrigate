@@ -30,9 +30,15 @@ export async function fetchPlan(config: PlotConfig): Promise<PlanApiResponse | n
 
 export async function fetchVarieties(
   regionId: string,
-  sun: string
-): Promise<{ all: PublicVariety[]; recommended: PublicVariety[] }> {
+  sun: string,
+  postalCode?: string
+): Promise<{
+  all: PublicVariety[];
+  recommended: PublicVariety[];
+  regionLabel?: string;
+}> {
   const params = new URLSearchParams({ regionId, sun });
+  if (postalCode?.length === 5) params.set("postalCode", postalCode);
   const res = await fetch(`/api/varieties?${params}`);
   if (!res.ok) return { all: [], recommended: [] };
   return res.json();

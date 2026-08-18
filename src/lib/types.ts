@@ -27,6 +27,8 @@ export interface CropVariety {
   season: "printemps" | "ete" | "automne" | "hiver" | "perenne";
   emoji: string;
   color: string;
+  /** Départements (2 chiffres) où cette variété est particulièrement adaptée */
+  departmentIds?: string[];
 }
 
 export interface Crop {
