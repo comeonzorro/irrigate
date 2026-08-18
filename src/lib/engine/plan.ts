@@ -1,5 +1,6 @@
 import type { PlotConfig, PlanResult } from "../types";
 import { layoutPlants } from "./layout";
+import { layoutIrrigationPipes } from "./pipes";
 import {
   computeWaterPlan,
   computeSetupCost,
@@ -15,6 +16,14 @@ export function generatePlan(config: PlotConfig): PlanResult {
     config.lengthM,
     config.selectedVarieties,
     config.sunExposure
+  );
+
+  const irrigation = layoutIrrigationPipes(
+    plants,
+    gridCols,
+    gridRows,
+    tileSizeM,
+    config.irrigationModeId
   );
 
   const water = computeWaterPlan(
@@ -49,6 +58,7 @@ export function generatePlan(config: PlotConfig): PlanResult {
     gridRows,
     tileSizeM,
     plantCount: plants.length,
+    irrigation,
     water,
     yield: yieldEst,
     fertilizer,

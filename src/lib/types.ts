@@ -100,12 +100,50 @@ export interface FertilizerPlan {
   notes: string;
 }
 
+export type PipeKind =
+  | "main"
+  | "lateral"
+  | "dripper"
+  | "sprinkler"
+  | "valve"
+  | "source"
+  | "hose_path";
+
+export interface PipeSegment {
+  id: string;
+  kind: PipeKind;
+  x1: number;
+  y1: number;
+  x2: number;
+  y2: number;
+  buried?: boolean;
+  dashed?: boolean;
+}
+
+export interface PipeNode {
+  id: string;
+  kind: PipeKind;
+  x: number;
+  y: number;
+  label?: string;
+  radius?: number;
+}
+
+export interface IrrigationLayout {
+  segments: PipeSegment[];
+  nodes: PipeNode[];
+  totalPipeLengthM: number;
+  dripperCount: number;
+  buriedDepthCm?: number;
+}
+
 export interface PlanResult {
   plants: PlacedPlant[];
   gridCols: number;
   gridRows: number;
   tileSizeM: number;
   plantCount: number;
+  irrigation: IrrigationLayout;
   water: WaterPlan;
   yield: YieldEstimate;
   fertilizer: FertilizerPlan;

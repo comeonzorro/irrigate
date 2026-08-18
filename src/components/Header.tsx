@@ -12,7 +12,7 @@ export function Header() {
           </p>
         </div>
         <span className="hidden rounded-full bg-emerald-700 px-3 py-1 text-xs sm:inline">
-          MVP · V1
+          V1.1 · 2D + 3D
         </span>
       </div>
     </header>

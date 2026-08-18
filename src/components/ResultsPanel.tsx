@@ -72,6 +72,30 @@ export function ResultsPanel({ plan, config }: ResultsPanelProps) {
       </div>
 
       <h3 className="mb-2 text-sm font-semibold text-emerald-800">
+        Réseau de tuyaux
+      </h3>
+      <div className="mb-4 grid grid-cols-2 gap-2 sm:grid-cols-3">
+        <Stat
+          label="Longueur totale"
+          value={plan.irrigation.totalPipeLengthM}
+          unit="m"
+        />
+        <Stat
+          label="Goutteurs"
+          value={plan.irrigation.dripperCount || "—"}
+        />
+        <Stat
+          label="Profondeur"
+          value={
+            plan.irrigation.buriedDepthCm
+              ? plan.irrigation.buriedDepthCm
+              : "Surface"
+          }
+          unit={plan.irrigation.buriedDepthCm ? "cm" : ""}
+        />
+      </div>
+
+      <h3 className="mb-2 text-sm font-semibold text-emerald-800">
         Rendement estimé (saison)
       </h3>
       <div className="mb-4 grid grid-cols-2 gap-2 sm:grid-cols-3">
