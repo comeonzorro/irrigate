@@ -4,6 +4,7 @@ import { useId, useState } from "react";
 import type { PlanResult } from "@/lib/types";
 import { getVariety } from "@/lib/data/crops";
 import { getIrrigationMode } from "@/lib/data/irrigation";
+import { IrrigationSceneLegend } from "@/components/IrrigationLegend";
 import type { PlotConfig } from "@/lib/types";
 
 interface PlotGridProps {
@@ -31,9 +32,10 @@ const NODE_STYLES: Record<string, { fill: string; stroke: string }> = {
 };
 
 export function PlotGrid({ plan, config, widthM, lengthM }: PlotGridProps) {
-  const { gridCols, gridRows, plants, tileSizeM, irrigation } = plan;
+  const { gridCols, gridRows, plants, tileSizeM, irrigation, zones } = plan;
   const [showPlants, setShowPlants] = useState(true);
   const [showPipes, setShowPipes] = useState(true);
+  const [showZones, setShowZones] = useState(true);
   const gridLabelId = useId();
   const mode = getIrrigationMode(config.irrigationModeId);
 
@@ -106,6 +108,17 @@ export function PlotGrid({ plan, config, widthM, lengthM }: PlotGridProps) {
           />
           Tuyaux & irrigation
         </label>
+        {zones.length > 1 && (
+          <label className="flex cursor-pointer items-center gap-2 text-sm text-emerald-800">
+            <input
+              type="checkbox"
+              checked={showZones}
+              onChange={(e) => setShowZones(e.target.checked)}
+              className="h-4 w-4 rounded border-emerald-300 text-emerald-600 focus:ring-emerald-400"
+            />
+            Bandes par espèce
+          </label>
+        )}
       </div>
 
       <div className="overflow-x-auto">
@@ -123,6 +136,43 @@ export function PlotGrid({ plan, config, widthM, lengthM }: PlotGridProps) {
           </title>
 
           <g transform="translate(8, 8)">
+            {showZones &&
+              zones.length > 1 &&
+              zones.map((zone) => {
+                const variety = getVariety(zone.varietyId);
+                const x = zone.colStart * cellSize;
+                const y = zone.rowStart * cellSize;
+                const w = (zone.colEnd - zone.colStart) * cellSize;
+                const h = (zone.rowEnd - zone.rowStart) * cellSize;
+                return (
+                  <g key={`zone-${zone.varietyId}`}>
+                    <rect
+                      x={x}
+                      y={y}
+                      width={w}
+                      height={h}
+                      fill={variety ? `${variety.color}18` : "rgba(0,0,0,0.04)"}
+                      stroke={variety?.color ?? "#888"}
+                      strokeWidth={1.5}
+                      strokeDasharray="6 3"
+                      rx={4}
+                    />
+                    {variety && (
+                      <text
+                        x={x + 4}
+                        y={y + 14}
+                        fontSize={10}
+                        fill={variety.color}
+                        fontWeight="600"
+                      >
+                        {variety.emoji}{" "}
+                        {variety.name.split(" «")[0].slice(0, 14)}
+                      </text>
+                    )}
+                  </g>
+                );
+              })}
+
             {cells.map((cell) => (
               <g key={cell.key}>
                 <rect
@@ -257,7 +307,11 @@ export function PlotGrid({ plan, config, widthM, lengthM }: PlotGridProps) {
             <> · enterrés à {irrigation.buriedDepthCm} cm</>
           )}
         </div>
-        <PipeLegend showBuried={!!irrigation.buriedDepthCm} />
+        <IrrigationSceneLegend
+          buriedDepthCm={irrigation.buriedDepthCm}
+          compact
+          className="border-0 bg-sky-50 p-2"
+        />
       </div>
 
       {showPlants && (
@@ -279,37 +333,5 @@ export function PlotGrid({ plan, config, widthM, lengthM }: PlotGridProps) {
         </div>
       )}
     </section>
-  );
-}
-
-function PipeLegend({ showBuried }: { showBuried: boolean }) {
-  return (
-    <ul className="flex flex-wrap gap-x-3 gap-y-1 text-xs text-emerald-700" aria-label="Légende tuyaux">
-      <li className="flex items-center gap-1">
-        <span className="inline-block h-1 w-4 rounded bg-blue-700" aria-hidden="true" />
-        Conduite principale
-      </li>
-      <li className="flex items-center gap-1">
-        <span className="inline-block h-1 w-4 rounded bg-blue-500" aria-hidden="true" />
-        Latérale
-      </li>
-      <li className="flex items-center gap-1">
-        <span className="inline-block h-2 w-2 rounded-full bg-cyan-500" aria-hidden="true" />
-        Goutteur
-      </li>
-      <li className="flex items-center gap-1">
-        <span className="inline-block h-2 w-2 rounded-full bg-amber-500" aria-hidden="true" />
-        Vanne / Té
-      </li>
-      {showBuried && (
-        <li className="flex items-center gap-1">
-          <span
-            className="inline-block h-0.5 w-4 border-t-2 border-dashed border-blue-500"
-            aria-hidden="true"
-          />
-          Enterré
-        </li>
-      )}
-    </ul>
   );
 }

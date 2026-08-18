@@ -32,8 +32,9 @@ export function CropSelector({ config, onChange }: CropSelectorProps) {
         🥕 Cultures & variétés
       </h2>
       <p className="mb-4 text-sm text-emerald-700">
-        Adaptées à votre région et exposition. Les tomates sont recommandées en
-        plein sud !
+        Adaptées à votre région et exposition. Plusieurs espèces ? Elles sont
+        réparties en bandes sur le plan — l&apos;app vous dira si la parcelle
+        est suffisante.
       </p>
 
       {recommended.length > 0 && (

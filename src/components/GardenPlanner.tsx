@@ -10,8 +10,10 @@ import { SettingsPanel } from "@/components/SettingsPanel";
 import { PlotSetup } from "@/components/PlotSetup";
 import { CropSelector } from "@/components/CropSelector";
 import { IrrigationPanel } from "@/components/IrrigationPanel";
+import { LayoutAdviceBanner } from "@/components/LayoutAdviceBanner";
 import { PlotGrid } from "@/components/PlotGrid";
 import { ResultsPanel } from "@/components/ResultsPanel";
+import { IrrigationSolutionsGuide } from "@/components/IrrigationSolutionsGuide";
 
 const PlotView3D = dynamic(
   () => import("@/components/PlotView3D").then((m) => m.PlotView3D),
@@ -81,6 +83,22 @@ export function GardenPlanner() {
                 updateConfig({ selectedVarieties })
               }
             />
+            {config.selectedVarieties.length > 0 && (
+              <LayoutAdviceBanner
+                advice={plan.layoutAdvice}
+                config={config}
+                onExpand={(widthM, lengthM) =>
+                  updateConfig({ widthM, lengthM })
+                }
+                onRemoveVarieties={(ids) =>
+                  updateConfig({
+                    selectedVarieties: config.selectedVarieties.filter(
+                      (id) => !ids.includes(id)
+                    ),
+                  })
+                }
+              />
+            )}
             <IrrigationPanel
               config={config}
               onChange={(irrigationModeId) =>
@@ -138,6 +156,13 @@ export function GardenPlanner() {
             )}
 
             <ResultsPanel plan={plan} config={config} />
+
+            <IrrigationSolutionsGuide
+              config={config}
+              onSelect={(irrigationModeId) =>
+                updateConfig({ irrigationModeId })
+              }
+            />
           </div>
         </div>
 

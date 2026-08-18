@@ -11,7 +11,7 @@ import { computeFertilizerPlan } from "../data/soil";
 
 export function generatePlan(config: PlotConfig): PlanResult {
   const areaM2 = config.widthM * config.lengthM;
-  const { plants, gridCols, gridRows, tileSizeM } = layoutPlants(
+  const { plants, gridCols, gridRows, tileSizeM, zones, advice } = layoutPlants(
     config.widthM,
     config.lengthM,
     config.selectedVarieties,
@@ -58,6 +58,8 @@ export function generatePlan(config: PlotConfig): PlanResult {
     gridRows,
     tileSizeM,
     plantCount: plants.length,
+    zones,
+    layoutAdvice: advice,
     irrigation,
     water,
     yield: yieldEst,

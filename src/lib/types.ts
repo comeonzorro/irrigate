@@ -137,12 +137,44 @@ export interface IrrigationLayout {
   buriedDepthCm?: number;
 }
 
+export interface LayoutZone {
+  varietyId: string;
+  colStart: number;
+  colEnd: number;
+  rowStart: number;
+  rowEnd: number;
+}
+
+export interface VarietyLayoutInfo {
+  varietyId: string;
+  name: string;
+  emoji: string;
+  placed: number;
+  maxPossible: number;
+  minAreaM2: number;
+  zoneAreaM2?: number;
+}
+
+export type LayoutStatus = "ok" | "tight" | "overflow";
+
+export interface LayoutAdvice {
+  status: LayoutStatus;
+  message: string;
+  varieties: VarietyLayoutInfo[];
+  unplacedVarietyIds?: string[];
+  suggestedWidthM?: number;
+  suggestedLengthM?: number;
+  suggestedAreaM2?: number;
+}
+
 export interface PlanResult {
   plants: PlacedPlant[];
   gridCols: number;
   gridRows: number;
   tileSizeM: number;
   plantCount: number;
+  zones: LayoutZone[];
+  layoutAdvice: LayoutAdvice;
   irrigation: IrrigationLayout;
   water: WaterPlan;
   yield: YieldEstimate;
