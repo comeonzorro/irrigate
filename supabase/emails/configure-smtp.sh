@@ -37,7 +37,7 @@ print(json.dumps({
     "smtp_user": __import__("os").environ["IRRIGATE_SMTP_USER"],
     "smtp_pass": __import__("os").environ["IRRIGATE_SMTP_PASS"],
     "smtp_host": "smtp.hostinger.com",
-    "smtp_port": 587,
+    "smtp_port": "587",
     "smtp_sender_name": sender,
     "mailer_subjects_confirmation": "Bienvenue sur Irrigate — confirmez votre e-mail 🌿",
     "mailer_templates_confirmation_content": (base / "confirm-signup.html").read_text(),
