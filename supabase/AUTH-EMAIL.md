@@ -52,26 +52,23 @@ Variables Supabase : `{{ .ConfirmationURL }}`, `{{ .SiteURL }}`, `{{ .Email }}`,
 
 Par défaut Supabase envoie depuis `noreply@mail.app.supabase.io` — peu rassurant.
 
-**État actuel** : `irrigate.fr` n'a pas encore de service e-mail Hostinger activé (pas de MX).
+**État actuel** : boîte `noreply@irrigate.fr` sur Hostinger · DNS e-mail sur **Vercel** (NS du domaine).
 
-#### A. Activer l'e-mail gratuit Hostinger (1× dans hPanel)
+Le domaine utilise les nameservers Vercel (`ns1.vercel-dns.com`). Les MX/SPF/DKIM doivent donc être dans **Vercel → irrigate.fr → DNS**, pas seulement dans hPanel Hostinger.
 
-1. [hPanel → Emails](https://hpanel.hostinger.com/emails)
-2. **Claim free email** → domaine `irrigate.fr` → Confirmer
-3. Attendre la fin du setup DNS (MX, SPF, DKIM)
+Enregistrements requis (déjà ajoutés si tu suis ce guide) :
 
-#### B. Créer la boîte d'envoi
+| Type | Nom | Valeur |
+|------|-----|--------|
+| MX | `@` | `5 mx1.hostinger.com` |
+| MX | `@` | `10 mx2.hostinger.com` |
+| TXT | `@` | `v=spf1 include:_spf.mail.hostinger.com ~all` |
+| TXT | `_dmarc` | `v=DMARC1; p=none` |
+| CNAME | `hostingermail-a._domainkey` | `hostingermail-a.dkim.mail.hostinger.com` |
+| CNAME | `hostingermail-b._domainkey` | `hostingermail-b.dkim.mail.hostinger.com` |
+| CNAME | `hostingermail-c._domainkey` | `hostingermail-c.dkim.mail.hostinger.com` |
 
-Dans hPanel → Emails → irrigate.fr → **Mailboxes** → **Add mailbox** :
-
-| Champ | Valeur |
-|-------|--------|
-| Adresse | `noreply` |
-| Mot de passe | fort (12+ car., maj/min/chiffre/spécial) |
-
-Optionnel : créer aussi `contact@irrigate.fr` (déjà cité sur le site).
-
-#### C. Brancher Supabase SMTP
+Vérifier : `dig MX irrigate.fr` et `dig TXT irrigate.fr`.
 
 Une fois la boîte créée, depuis le repo :
 
