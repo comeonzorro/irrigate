@@ -1,6 +1,7 @@
-import { View, Text, TextInput, Pressable, Switch, StyleSheet } from "react-native";
+import { View, Text, Pressable, Switch, StyleSheet } from "react-native";
 import { usePlanner } from "../context/PlannerContext";
 import { Card } from "./ui/Card";
+import { DimensionInput } from "./DimensionInput";
 import { colors } from "../theme/colors";
 import type { SunExposure } from "../types";
 
@@ -23,30 +24,16 @@ export function PlotSetup() {
   return (
     <Card title="🌱 Dimensions de la parcelle">
       <View style={styles.row}>
-        <View style={styles.field}>
-          <Text style={styles.label}>Largeur (m)</Text>
-          <TextInput
-            style={styles.input}
-            keyboardType="decimal-pad"
-            value={String(config.widthM)}
-            onChangeText={(v) =>
-              updateConfig({ widthM: Math.min(50, Math.max(1, Number(v) || 1)) })
-            }
-          />
-        </View>
-        <View style={styles.field}>
-          <Text style={styles.label}>Longueur (m)</Text>
-          <TextInput
-            style={styles.input}
-            keyboardType="decimal-pad"
-            value={String(config.lengthM)}
-            onChangeText={(v) =>
-              updateConfig({
-                lengthM: Math.min(50, Math.max(1, Number(v) || 1)),
-              })
-            }
-          />
-        </View>
+        <DimensionInput
+          label="Largeur (m)"
+          value={config.widthM}
+          onCommit={(widthM) => updateConfig({ widthM })}
+        />
+        <DimensionInput
+          label="Longueur (m)"
+          value={config.lengthM}
+          onCommit={(lengthM) => updateConfig({ lengthM })}
+        />
       </View>
       <Text style={styles.area}>
         Surface : <Text style={styles.areaBold}>{area} m²</Text>
@@ -92,18 +79,7 @@ export function PlotSetup() {
 
 const styles = StyleSheet.create({
   row: { flexDirection: "row", gap: 12 },
-  field: { flex: 1 },
   label: { fontSize: 14, fontWeight: "600", color: colors.text, marginBottom: 6 },
-  input: {
-    borderWidth: 1,
-    borderColor: colors.border,
-    borderRadius: 10,
-    paddingHorizontal: 12,
-    paddingVertical: 10,
-    fontSize: 16,
-    color: colors.text,
-    backgroundColor: "#fff",
-  },
   area: { marginTop: 8, fontSize: 14, color: colors.textMuted },
   areaBold: { fontWeight: "700", color: colors.text },
   sunGrid: { flexDirection: "row", flexWrap: "wrap", gap: 8, marginTop: 8 },

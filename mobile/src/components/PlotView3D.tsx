@@ -1,11 +1,15 @@
 import { View, Text, StyleSheet, useWindowDimensions } from "react-native";
 import { Canvas } from "@react-three/fiber/native";
-import { OrbitControls, PerspectiveCamera } from "@react-three/drei/native";
-import * as THREE from "three";
+import { PerspectiveCamera } from "@react-three/drei/native";
 import { usePlanner } from "../context/PlannerContext";
 import { getIrrigationMode } from "../constants/irrigation";
 import { colors } from "../theme/colors";
 import type { PipeNode, PlanResult, VarietyDisplay } from "../types";
+import {
+  NativeCameraGestureView,
+  NativeCameraRig,
+  useCameraControlState,
+} from "./plot3d/NativeCameraControls";
 
 const PIPE_COLORS: Record<string, string> = {
   main: "#1d4ed8",
@@ -20,6 +24,10 @@ export function PlotView3D() {
   const { height } = useWindowDimensions();
   const mode = getIrrigationMode(config.irrigationModeId);
   const canvasHeight = Math.min(height * 0.55, 480);
+  const controlRef = useCameraControlState(widthM, lengthM);
+  const target = [widthM / 2, 0, lengthM / 2] as [number, number, number];
+  const minDistance = Math.max(3, Math.max(widthM, lengthM) * 0.6);
+  const maxDistance = Math.max(25, Math.max(widthM, lengthM) * 4);
 
   return (
     <View style={styles.wrap}>
@@ -32,14 +40,27 @@ export function PlotView3D() {
       </Text>
 
       <View style={[styles.canvas, { height: canvasHeight }]}>
-        <Canvas shadows>
-          <Scene
-            plan={plan}
-            varietyDisplay={varietyDisplay}
-            widthM={widthM}
-            lengthM={lengthM}
-          />
-        </Canvas>
+        <NativeCameraGestureView
+          controlRef={controlRef}
+          minDistance={minDistance}
+          maxDistance={maxDistance}
+          style={styles.gestureFill}
+        >
+          <Canvas>
+            <NativeCameraRig
+              controlRef={controlRef}
+              target={target}
+              minDistance={minDistance}
+              maxDistance={maxDistance}
+            />
+            <Scene
+              plan={plan}
+              varietyDisplay={varietyDisplay}
+              widthM={widthM}
+              lengthM={lengthM}
+            />
+          </Canvas>
+        </NativeCameraGestureView>
       </View>
 
       <Text style={styles.footer}>
@@ -64,25 +85,9 @@ function Scene({
 
   return (
     <>
-      <PerspectiveCamera
-        makeDefault
-        position={[widthM * 1.2, widthM, lengthM * 1.4]}
-        fov={45}
-      />
+      <PerspectiveCamera makeDefault position={[widthM * 1.2, widthM, lengthM * 1.4]} fov={45} />
       <ambientLight intensity={0.6} />
-      <directionalLight position={[10, 15, 5]} intensity={1.2} castShadow />
-      <OrbitControls
-        enablePan
-        enableDamping
-        dampingFactor={0.08}
-        minDistance={3}
-        maxDistance={25}
-        target={[widthM / 2, 0, lengthM / 2]}
-        touches={{
-          ONE: THREE.TOUCH.ROTATE,
-          TWO: THREE.TOUCH.DOLLY_PAN,
-        }}
-      />
+      <directionalLight position={[10, 15, 5]} intensity={1.2} />
 
       <Ground width={widthM} length={lengthM} />
 
@@ -159,12 +164,14 @@ function Scene({
 }
 
 function Ground({ width, length }: { width: number; length: number }) {
+  const gridSize = Math.max(width, length);
+  const divisions = Math.min(20, Math.max(4, Math.round(gridSize)));
+
   return (
     <group>
       <mesh
         rotation={[-Math.PI / 2, 0, 0]}
         position={[width / 2, 0, length / 2]}
-        receiveShadow
       >
         <planeGeometry args={[width, length]} />
         <meshStandardMaterial color="#8B6914" roughness={0.9} />
@@ -177,7 +184,7 @@ function Ground({ width, length }: { width: number; length: number }) {
         <meshStandardMaterial color="#6B8E23" transparent opacity={0.35} />
       </mesh>
       <gridHelper
-        args={[Math.max(width, length), Math.max(width, length), "#5c4a1a", "#5c4a1a"]}
+        args={[gridSize, divisions, "#5c4a1a", "#5c4a1a"]}
         position={[width / 2, 0.01, length / 2]}
       />
     </group>
@@ -187,11 +194,11 @@ function Ground({ width, length }: { width: number; length: number }) {
 function PlantMesh({ x, z, color }: { x: number; z: number; color: string }) {
   return (
     <group position={[x, 0, z]}>
-      <mesh position={[0, 0.15, 0]} castShadow>
+      <mesh position={[0, 0.15, 0]}>
         <cylinderGeometry args={[0.08, 0.1, 0.3, 8]} />
         <meshStandardMaterial color="#4a6741" />
       </mesh>
-      <mesh position={[0, 0.35, 0]} castShadow>
+      <mesh position={[0, 0.35, 0]}>
         <sphereGeometry args={[0.18, 12, 12]} />
         <meshStandardMaterial color={color} />
       </mesh>
@@ -231,9 +238,9 @@ function PipeSegmentMesh({
   const my = (y1 + y2) / 2;
   const mz = (z1 + z2) / 2;
   const rotY = Math.atan2(dx, dz);
-  const rotX = Math.asin(dy / length);
+  const rotX = Math.asin(Math.max(-1, Math.min(1, dy / length)));
   return (
-    <mesh position={[mx, my, mz]} rotation={[rotX, rotY, 0]} castShadow={!buried}>
+    <mesh position={[mx, my, mz]} rotation={[rotX, rotY, 0]}>
       <boxGeometry args={[radius * 2, depth, length]} />
       <meshStandardMaterial
         color={color}
@@ -260,7 +267,7 @@ function NodeMesh({
   size: number;
 }) {
   return (
-    <mesh position={[x, y, z]} castShadow>
+    <mesh position={[x, y, z]}>
       <sphereGeometry args={[size, 12, 12]} />
       <meshStandardMaterial color={color} metalness={0.4} />
     </mesh>
@@ -276,11 +283,18 @@ function SprinklerMesh({
   z: number;
   radius: number;
 }) {
+  if (radius <= 0) return null;
+  const inner = Math.max(0.01, radius * 0.8);
   return (
     <group position={[x, 0.05, z]}>
       <mesh rotation={[-Math.PI / 2, 0, 0]}>
-        <ringGeometry args={[radius * 0.8, radius, 32]} />
-        <meshStandardMaterial color="#3b82f6" transparent opacity={0.35} side={2} />
+        <ringGeometry args={[inner, radius, 32]} />
+        <meshStandardMaterial
+          color="#3b82f6"
+          transparent
+          opacity={0.35}
+          side={2}
+        />
       </mesh>
       <NodeMesh x={0} y={0.08} z={0} color="#3b82f6" size={0.07} />
     </group>
@@ -299,5 +313,6 @@ const styles = StyleSheet.create({
     borderColor: colors.border,
     backgroundColor: "#dbeafe",
   },
+  gestureFill: { flex: 1 },
   footer: { fontSize: 12, color: colors.textMuted, marginTop: 10 },
 });

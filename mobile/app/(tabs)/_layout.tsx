@@ -9,6 +9,7 @@ function TabIcon({ emoji }: { emoji: string }) {
 export default function TabLayout() {
   return (
     <Tabs
+      initialRouteName="config"
       screenOptions={{
         headerShown: false,
         tabBarActiveTintColor: colors.primary,
@@ -22,17 +23,17 @@ export default function TabLayout() {
       }}
     >
       <Tabs.Screen
-        name="index"
-        options={{
-          title: "Plan",
-          tabBarIcon: () => <TabIcon emoji="🗺️" />,
-        }}
-      />
-      <Tabs.Screen
         name="config"
         options={{
           title: "Config",
           tabBarIcon: () => <TabIcon emoji="⚙️" />,
+        }}
+      />
+      <Tabs.Screen
+        name="index"
+        options={{
+          title: "Plan",
+          tabBarIcon: () => <TabIcon emoji="🗺️" />,
         }}
       />
       <Tabs.Screen
