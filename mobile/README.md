@@ -20,13 +20,17 @@ Application **React Native** avec UI native (pas de WebView). Le moteur de calcu
 
 ## Configuration
 
-1. **Bundle ID** — déjà aligné : `com.irrigate-garden.app` (App Store Connect).
-2. **Apple ID app** — `6802997672` (prérempli dans `eas.json` pour `eas submit`).
+- **Bundle ID** : `com.irrigate-garden.app` (aligné App Store Connect)
+- **Apple ID app** : `6802997672` (dans `eas.json` pour `eas submit`)
+- **API** : `https://irrigate.fr` par défaut
+
+Dev local :
 
 ```bash
 EXPO_PUBLIC_API_URL=http://192.168.x.x:3000 npm run ios
 ```
-3. **API** — par défaut `https://irrigate.fr`. Pour le dev local :
+
+## Lancer en local
 
 ```bash
 cd mobile
