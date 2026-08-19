@@ -10,7 +10,7 @@
 Config scopée dans **`irrigate/.cursor/mcp.json`** — serveur `supabase-irrigate` :
 
 ```
-https://mcp.supabase.com/mcp?project_ref=znxtnowftyvagwwwvhka
+https://mcp.supabase.com/mcp?project_ref=znxtnowftyvagwwvhhka
 ```
 
 Retiré du MCP global (`~/.cursor/mcp.json`) pour ne pas mélanger vos autres projets Supabase.
@@ -28,7 +28,7 @@ Tables créées :
 - `projects` — potagers sauvegardés (config JSON)
 - `garden_showcases` — réalisations partagées (V2)
 
-## 3. Auth (magic link)
+## 3. Auth (e-mail + mot de passe)
 
 Dashboard → Authentication → Providers → **Email** : activé  
 Site URL : `https://irrigate.fr`  
@@ -40,7 +40,7 @@ Redirect URLs :
 
 ### Vercel (site)
 ```
-NEXT_PUBLIC_SUPABASE_URL=https://znxtnowftyvagwwwvhka.supabase.co
+NEXT_PUBLIC_SUPABASE_URL=https://znxtnowftyvagwwvhhka.supabase.co
 NEXT_PUBLIC_SUPABASE_ANON_KEY=<anon public>
 SUPABASE_SERVICE_ROLE_KEY=<service role — server only>
 ```

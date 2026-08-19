@@ -1,6 +1,6 @@
 # E-mails d'authentification Supabase — Irrigate
 
-Projet : **znxtnowftyvagwwwvhka** · Site : **https://irrigate.fr**
+Projet : **znxtnowftyvagwwvhhka** · Site : **https://irrigate.fr**
 
 ## Checklist Supabase (ce qu'il reste à faire)
 
@@ -22,43 +22,31 @@ Dashboard → **Authentication** → **Providers** → **Email**
 - ✅ Enable Email provider
 - ✅ **Confirm email** : activé (recommandé)
 - ✅ **Secure email change** : activé
-- **Magic Link** / OTP : c'est ce que utilise `/compte` (`signInWithOtp`)
+- Connexion par **e-mail + mot de passe** (`signUp` / `signInWithPassword` sur `/compte` et app iOS)
+- **Magic Link** : désactivé côté app (optionnel dans Supabase, non utilisé)
 
 ### 3. Templates d'e-mail (personnalisation)
 
-Dashboard → **Authentication** → **Email Templates**
+Fichiers prêts dans **`supabase/emails/`** :
 
-Modifier au minimum :
+| Fichier | Usage Supabase | Objet |
+|---------|----------------|-------|
+| `magic-link.html` | *(non utilisé)* | — |
+| `confirm-signup.html` | **Confirm signup** | `Bienvenue sur Irrigate — confirmez votre e-mail 🌿` |
+| *(à ajouter)* | **Reset password** | `Réinitialisez votre mot de passe Irrigate` |
 
-#### **Magic Link** (connexion web + app)
+Déploiement automatique (après SMTP custom, voir §4) :
 
-**Subject suggéré :**
-```
-Votre lien de connexion Irrigate 🌱
-```
-
-**Body suggéré** (HTML) — coller dans l'éditeur Supabase :
-
-```html
-<h2>Connexion à Irrigate</h2>
-<p>Bonjour,</p>
-<p>Cliquez sur le bouton ci-dessous pour accéder à votre espace potager et retrouver vos projets sauvegardés.</p>
-<p><a href="{{ .ConfirmationURL }}" style="display:inline-block;background:#15803d;color:#fff;padding:12px 24px;border-radius:8px;text-decoration:none;font-weight:600;">Se connecter à Irrigate</a></p>
-<p>Ou copiez ce lien :<br>{{ .ConfirmationURL }}</p>
-<p style="color:#666;font-size:13px;">Ce lien expire sous 24 h. Si vous n'avez pas demandé cette connexion, ignorez cet e-mail.</p>
-<p>— L'équipe <a href="https://irrigate.fr">Irrigate.fr</a></p>
+```bash
+source ~/.zshrc
+./supabase/emails/deploy-templates.sh
 ```
 
-Variables Supabase disponibles : `{{ .ConfirmationURL }}`, `{{ .SiteURL }}`, `{{ .Email }}`, etc.
+> **Plan Free + expéditeur Supabase par défaut** : l'API refuse la modification des templates.
+> Il faut d'abord activer **Custom SMTP** (§4), puis relancer le script ou coller le HTML dans
+> Dashboard → **Authentication** → **Email Templates**.
 
-#### **Confirm signup** (si inscription explicite)
-
-**Subject :**
-```
-Bienvenue sur Irrigate — confirmez votre e-mail
-```
-
-Même structure avec `{{ .ConfirmationURL }}`.
+Variables Supabase : `{{ .ConfirmationURL }}`, `{{ .SiteURL }}`, `{{ .Email }}`, etc.
 
 ### 4. Expéditeur (optionnel mais pro)
 
@@ -93,7 +81,7 @@ Déjà configuré :
 Ajouter dans **EAS Secrets** ou `eas.json` env :
 
 ```
-EXPO_PUBLIC_SUPABASE_URL=https://znxtnowftyvagwwwvhka.supabase.co
+EXPO_PUBLIC_SUPABASE_URL=https://znxtnowftyvagwwvhhka.supabase.co
 EXPO_PUBLIC_SUPABASE_ANON_KEY=<anon key>
 ```
 
@@ -107,7 +95,7 @@ Config dans **`irrigate/.cursor/mcp.json`** uniquement :
 
 ```json
 "supabase-irrigate": {
-  "url": "https://mcp.supabase.com/mcp?project_ref=znxtnowftyvagwwwvhka"
+  "url": "https://mcp.supabase.com/mcp?project_ref=znxtnowftyvagwwvhhka"
 }
 ```
 
@@ -120,7 +108,7 @@ Retiré du MCP global pour ne pas mélanger tes autres projets.
 ## Test rapide
 
 1. Aller sur https://irrigate.fr/compte
-2. Entrer votre e-mail → **Lien magique**
+2. **Créer un compte** ou **Se connecter** avec e-mail + mot de passe
 3. Vérifier réception (et spams)
 4. Cliquer le lien → redirection `/compte` connecté
 5. Créer/modifier un projet sur `/app` → sync cloud si connecté

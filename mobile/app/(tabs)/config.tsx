@@ -5,6 +5,7 @@ import { PlotSetup } from "../../src/components/PlotSetup";
 import { CropSelector } from "../../src/components/CropSelector";
 import { IrrigationPanel } from "../../src/components/IrrigationPanel";
 import { PlotGrid } from "../../src/components/PlotGrid";
+import { AuthPanel } from "../../src/components/AuthPanel";
 import { ProjectBar } from "../../src/components/ProjectBar";
 import { usePlanner } from "../../src/context/PlannerContext";
 import { colors } from "../../src/theme/colors";
@@ -24,6 +25,7 @@ export default function ConfigScreen() {
         contentContainerStyle={styles.scroll}
         keyboardShouldPersistTaps="handled"
       >
+        <AuthPanel />
         <ProjectBar
           projects={projects}
           activeProjectId={activeProjectId}

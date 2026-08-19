@@ -17,8 +17,8 @@
 | Repo GitHub | `comeonzorro/irrigate` |
 | App iOS | TestFlight · bundle `com.irrigate-garden.app` |
 | Expo / EAS | `@leo_theoffnote/irrigate` |
-| Supabase project ref | `znxtnowftyvagwwwvhka` |
-| Supabase URL | `https://znxtnowftyvagwwwvhka.supabase.co` |
+| Supabase project ref | `znxtnowftyvagwwvhhka` |
+| Supabase URL | `https://znxtnowftyvagwwvhhka.supabase.co` |
 | Vercel | `comeonzorros-projects/irrigate` |
 
 ---
@@ -58,7 +58,7 @@
 |------|----------------|
 | Porte ville | `/` → `CityGateLanding.tsx` (fond flouté du planificateur) |
 | App | `/app` → `AppShell.tsx` + `GardenPlanner` |
-| Compte | `/compte` → magic link Supabase `AuthPanel.tsx` |
+| Compte | `/compte` → e-mail + mot de passe Supabase `AuthPanel.tsx` |
 | API projets | `src/app/api/projects/` |
 | Schéma BDD | `supabase/schema.sql` |
 | Guide e-mails | `supabase/AUTH-EMAIL.md` |
@@ -68,7 +68,7 @@
 ### 4. Infra configurée
 
 - **Vercel** : `NEXT_PUBLIC_SUPABASE_URL`, `NEXT_PUBLIC_SUPABASE_ANON_KEY`, `SUPABASE_SERVICE_ROLE_KEY` (prod + preview)
-- **MCP Cursor** : `supabase-irrigate` scopé `project_ref=znxtnowftyvagwwwvhka` (`.cursor/mcp.json` + `~/.cursor/mcp.json`)
+- **MCP Cursor** : `supabase-irrigate` scopé `project_ref=znxtnowftyvagwwvhhka` (`.cursor/mcp.json` + `~/.cursor/mcp.json`)
 - **Supabase** : clés reçues · schéma SQL à confirmer côté dashboard · templates e-mail à personnaliser
 
 ---
@@ -118,7 +118,7 @@ Utilise le MCP supabase-irrigate pour vérifier les tables et la config auth.
 |-------|------|
 | `/` | Porte ville (code postal obligatoire) |
 | `/app` | Planificateur + barre projets |
-| `/compte` | Connexion magic link + liste projets locaux |
+| `/compte` | Connexion / inscription + liste projets locaux |
 | `/auth/callback` | Callback OAuth Supabase |
 | `/assistance`, `/mentions-legales`, `/confidentialite` | Pages statiques |
 
@@ -163,7 +163,7 @@ Solution : `NativeCameraControls` + `Gesture.Pinch` / `Gesture.Pan`.
 
 ## Contact / liens utiles
 
-- Dashboard Supabase : https://supabase.com/dashboard/project/znxtnowftyvagwwwvhka
+- Dashboard Supabase : https://supabase.com/dashboard/project/znxtnowftyvagwwvhhka
 - TestFlight ASC : app `6802997672`
 - Assistance site : https://irrigate.fr/assistance
 

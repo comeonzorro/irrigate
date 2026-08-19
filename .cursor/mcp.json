@@ -1,8 +1,15 @@
 {
   "mcpServers": {
     "supabase-irrigate": {
-      "type": "http",
-      "url": "https://mcp.supabase.com/mcp?project_ref=znxtnowftyvagwwwvhka"
+      "command": "npx",
+      "args": [
+        "-y",
+        "@supabase/mcp-server-supabase",
+        "--project-ref=znxtnowftyvagwwvhhka"
+      ],
+      "env": {
+        "SUPABASE_ACCESS_TOKEN": "${env:SUPABASE_ACCESS_TOKEN}"
+      }
     }
   }
 }
