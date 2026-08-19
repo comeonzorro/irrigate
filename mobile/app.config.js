@@ -45,6 +45,8 @@ module.exports = {
       projectId: "aa3c889b-15ab-4412-bcfe-5b4bd709de10",
     },
     apiUrl: process.env.EXPO_PUBLIC_API_URL ?? "https://irrigate.fr",
+    supabaseUrl: process.env.EXPO_PUBLIC_SUPABASE_URL ?? "",
+    supabaseAnonKey: process.env.EXPO_PUBLIC_SUPABASE_ANON_KEY ?? "",
     ascAppId: "6802997672",
     router: {},
   },

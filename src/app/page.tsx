@@ -1,5 +1,5 @@
-import { GardenPlanner } from "@/components/GardenPlanner";
+import { CityGateLanding } from "@/components/CityGateLanding";
 
-export default function Home() {
-  return <GardenPlanner />;
+export default function HomePage() {
+  return <CityGateLanding />;
 }

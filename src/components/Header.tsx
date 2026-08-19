@@ -12,6 +12,18 @@ export function Header() {
         </Link>
         <nav className="hidden shrink-0 items-center gap-4 text-sm sm:flex">
           <Link
+            href="/app"
+            className="text-emerald-200 hover:text-white"
+          >
+            Planificateur
+          </Link>
+          <Link
+            href="/compte"
+            className="text-emerald-200 hover:text-white"
+          >
+            Mon compte
+          </Link>
+          <Link
             href="/mentions-legales"
             className="text-emerald-200 hover:text-white"
           >

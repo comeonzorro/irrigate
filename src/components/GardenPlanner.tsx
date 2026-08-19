@@ -83,6 +83,8 @@ const EMPTY_PLAN: PlanResult = {
   breakEvenMonths: Infinity,
 };
 
+type ViewMode = "2d" | "3d" | "both";
+
 const DEFAULT_CONFIG: PlotConfig = {
   widthM: 4,
   lengthM: 6,
@@ -95,13 +97,24 @@ const DEFAULT_CONFIG: PlotConfig = {
   irrigationModeId: "drip_buried",
 };
 
-type ViewMode = "2d" | "3d" | "both";
+interface GardenPlannerProps {
+  initialConfig?: PlotConfig;
+  initialLocation?: LocationInfo | null;
+  onPersist?: (config: PlotConfig, location: LocationInfo | null) => void;
+  /** Aperçu flouté derrière la porte ville — pas de sauvegarde */
+  previewMode?: boolean;
+}
 
-export function GardenPlanner() {
+export function GardenPlanner({
+  initialConfig,
+  initialLocation = null,
+  onPersist,
+  previewMode = false,
+}: GardenPlannerProps = {}) {
   const isMobile = useMediaQuery("(max-width: 767px)");
-  const [config, setConfig] = useState<PlotConfig>(DEFAULT_CONFIG);
+  const [config, setConfig] = useState<PlotConfig>(initialConfig ?? DEFAULT_CONFIG);
   const [viewMode, setViewMode] = useState<ViewMode>("both");
-  const [location, setLocation] = useState<LocationInfo | null>(null);
+  const [location, setLocation] = useState<LocationInfo | null>(initialLocation);
   const [plan, setPlan] = useState<PlanResult>(EMPTY_PLAN);
   const [varietyDisplay, setVarietyDisplay] = useState<
     Record<string, VarietyDisplay>
@@ -186,16 +199,30 @@ export function GardenPlanner() {
     };
   }, [config]);
 
+  useEffect(() => {
+    if (previewMode || !onPersist) return;
+    const timer = setTimeout(() => {
+      onPersist(config, location);
+    }, 400);
+    return () => clearTimeout(timer);
+  }, [config, location, onPersist, previewMode]);
+
   return (
     <>
-      <a
-        href="#main-content"
-        className="sr-only focus:not-sr-only focus:absolute focus:left-4 focus:top-4 focus:z-50 focus:rounded-lg focus:bg-emerald-700 focus:px-4 focus:py-2 focus:text-white"
+      {!previewMode ? (
+        <a
+          href="#main-content"
+          className="sr-only focus:not-sr-only focus:absolute focus:left-4 focus:top-4 focus:z-50 focus:rounded-lg focus:bg-emerald-700 focus:px-4 focus:py-2 focus:text-white"
+        >
+          Aller au contenu principal
+        </a>
+      ) : null}
+      {!previewMode ? <Header /> : null}
+      <main
+        id={previewMode ? undefined : "main-content"}
+        className={`mx-auto max-w-6xl flex-1 px-4 ${previewMode ? "py-4" : "py-8"}`}
+        aria-hidden={previewMode}
       >
-        Aller au contenu principal
-      </a>
-      <Header />
-      <main id="main-content" className="mx-auto max-w-6xl flex-1 px-4 py-8">
         <div className="mb-8 rounded-2xl bg-gradient-to-r from-emerald-800 to-emerald-600 p-6 text-white shadow-lg">
           <h2 className="text-xl font-semibold">
             Votre potager, votre arrosage, votre récolte
@@ -302,7 +329,7 @@ export function GardenPlanner() {
               />
             )}
 
-            {(viewMode === "3d" || viewMode === "both") && (
+            {(viewMode === "3d" || viewMode === "both") && !previewMode ? (
               <PlotView3D
                 plan={plan}
                 config={config}
@@ -310,7 +337,7 @@ export function GardenPlanner() {
                 widthM={config.widthM}
                 lengthM={config.lengthM}
               />
-            )}
+            ) : null}
 
             <ResultsPanel plan={plan} config={config} />
           </div>
@@ -330,7 +357,7 @@ export function GardenPlanner() {
           />
         </div>
 
-        <Footer />
+        {!previewMode ? <Footer /> : null}
       </main>
     </>
   );

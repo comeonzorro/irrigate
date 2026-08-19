@@ -7,6 +7,7 @@ import type {
   RecommendedProduct,
   VarietyDisplay,
 } from "../types";
+import type { SavedProject } from "../lib/projectStorage";
 
 export const EMPTY_PLAN: PlanResult = {
   plants: [],
@@ -68,6 +69,9 @@ export const DEFAULT_CONFIG: PlotConfig = {
 };
 
 export interface PlannerState {
+  hydrated: boolean;
+  projects: SavedProject[];
+  activeProjectId: string | null;
   config: PlotConfig;
   location: LocationInfo | null;
   plan: PlanResult;
@@ -87,6 +91,9 @@ export interface PlannerActions {
   updateConfig: (patch: Partial<PlotConfig>) => void;
   locatePostal: () => Promise<void>;
   setSelectedVarieties: (ids: string[]) => void;
+  selectProject: (projectId: string) => Promise<void>;
+  createProject: () => Promise<void>;
+  deleteProject: (projectId: string) => Promise<void>;
 }
 
 export type PlannerContextValue = PlannerState & PlannerActions;
