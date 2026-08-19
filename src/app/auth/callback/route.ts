@@ -1,5 +1,5 @@
 import { NextResponse } from "next/server";
-import { createClient } from "@/lib/supabase/server";
+import { createRouteHandlerClient } from "@/lib/supabase/route-handler";
 
 function buildRedirectPath(
   next: string,
@@ -19,22 +19,24 @@ export async function GET(request: Request) {
   const reset = searchParams.get("reset");
   const type = searchParams.get("type");
 
-  if (code) {
-    const supabase = await createClient();
-    if (supabase) {
-      const { error } = await supabase.auth.exchangeCodeForSession(code);
-      if (error) {
-        const failPath = buildRedirectPath("/compte", {
-          error: "auth_callback_failed",
-        });
-        return NextResponse.redirect(`${origin}${failPath}`);
-      }
-    }
-  }
-
   const destination = buildRedirectPath(next, {
     reset: reset ?? (type === "recovery" ? "1" : null),
   });
 
-  return NextResponse.redirect(`${origin}${destination}`);
+  if (!code) {
+    return NextResponse.redirect(`${origin}${destination}`);
+  }
+
+  const response = NextResponse.redirect(`${origin}${destination}`);
+  const supabase = await createRouteHandlerClient(response);
+  if (!supabase) {
+    return NextResponse.redirect(`${origin}/compte?error=auth_not_configured`);
+  }
+
+  const { error } = await supabase.auth.exchangeCodeForSession(code);
+  if (error) {
+    return NextResponse.redirect(`${origin}/compte?error=auth_callback_failed`);
+  }
+
+  return response;
 }

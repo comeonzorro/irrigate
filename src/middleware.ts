@@ -11,5 +11,6 @@ export const config = {
     "/compte/:path*",
     "/auth/:path*",
     "/api/projects/:path*",
+    "/api/auth/:path*",
   ],
 };

@@ -1,6 +1,6 @@
 import { NextResponse } from "next/server";
 import type { EmailOtpType } from "@supabase/supabase-js";
-import { createClient } from "@/lib/supabase/server";
+import { createRouteHandlerClient } from "@/lib/supabase/route-handler";
 
 const RECOVERY_DEST = "/compte?reset=1";
 const DEFAULT_DEST = "/compte";
@@ -15,7 +15,15 @@ export async function GET(request: Request) {
     return NextResponse.redirect(`${origin}${DEFAULT_DEST}?error=auth_link_invalid`);
   }
 
-  const supabase = await createClient();
+  let destination = DEFAULT_DEST;
+  if (next && next.startsWith("/")) {
+    destination = next;
+  } else if (type === "recovery") {
+    destination = RECOVERY_DEST;
+  }
+
+  const response = NextResponse.redirect(`${origin}${destination}`);
+  const supabase = await createRouteHandlerClient(response);
   if (!supabase) {
     return NextResponse.redirect(`${origin}${DEFAULT_DEST}?error=auth_not_configured`);
   }
@@ -25,10 +33,5 @@ export async function GET(request: Request) {
     return NextResponse.redirect(`${origin}${DEFAULT_DEST}?error=auth_link_expired`);
   }
 
-  if (next && next.startsWith("/")) {
-    return NextResponse.redirect(`${origin}${next}`);
-  }
-
-  const destination = type === "recovery" ? RECOVERY_DEST : DEFAULT_DEST;
-  return NextResponse.redirect(`${origin}${destination}`);
+  return response;
 }

@@ -28,9 +28,20 @@ export function AuthPanel() {
 
   useEffect(() => {
     const params = new URLSearchParams(window.location.search);
-    if (params.get("reset") === "1") {
-      setMode("update-password");
-    }
+    if (params.get("reset") !== "1") return;
+
+    setMode("update-password");
+    const supabase = createClient();
+    if (!supabase) return;
+
+    void supabase.auth.getSession().then(({ data }) => {
+      setUser(data.session?.user ?? null);
+      if (!data.session) {
+        setError(
+          "Session expirée ou lien déjà utilisé — demandez un nouveau lien de réinitialisation."
+        );
+      }
+    });
   }, []);
 
   useEffect(() => {
@@ -154,9 +165,6 @@ export function AuthPanel() {
   }, [clearFeedback, email]);
 
   const updatePassword = useCallback(async () => {
-    const supabase = createClient();
-    if (!supabase) return;
-
     const passwordError = validatePassword(password);
     if (passwordError) {
       setError(passwordError);
@@ -169,12 +177,25 @@ export function AuthPanel() {
 
     setLoading(true);
     clearFeedback();
-    const { error: updateError } = await supabase.auth.updateUser({ password });
+    const res = await fetch("/api/auth/update-password", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ password }),
+    });
+    const data = (await res.json().catch(() => ({}))) as {
+      error?: string;
+      ok?: boolean;
+    };
     setLoading(false);
 
-    if (updateError) {
-      setError(updateError.message);
+    if (!res.ok) {
+      setError(data.error ?? "Impossible de mettre à jour le mot de passe.");
       return;
+    }
+
+    const supabase = createClient();
+    if (supabase) {
+      await supabase.auth.getSession();
     }
 
     setPassword("");
