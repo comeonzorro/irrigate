@@ -54,9 +54,8 @@ potager,irrigation,jardin,arrosage,cultures,legumes,serre,goutte,planning,parcel
 
 ### Copyright
 ```
-© 2026 Irrigate
+© 2026 Léo Le Coguic
 ```
-(Remplacez par votre raison sociale si différente, ex. © 2026 [Votre SAS].)
 
 ---
 

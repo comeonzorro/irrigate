@@ -30,8 +30,13 @@ export default function ConfidentialitePage() {
 
         <h2>1. Responsable du traitement</h2>
         <p>
-          L&apos;éditeur du service Irrigate est joignable à{" "}
-          <a href="mailto:contact@irrigate.fr">contact@irrigate.fr</a>.
+          <strong>Léo Le Coguic</strong>
+          <br />
+          1 rue George V, 35400 Saint-Malo, France
+          <br />
+          <a href="mailto:contact@irrigate.fr">contact@irrigate.fr</a>
+        </p>
+        <p>
           Coordonnées légales complètes :{" "}
           <Link href="/mentions-legales">mentions légales</Link>.
         </p>

@@ -28,11 +28,24 @@ export default function MentionsLegalesPage() {
           Le site <strong>irrigate.fr</strong> est édité par :
         </p>
         <ul>
-          <li>Raison sociale / nom : <em>[À compléter — ex. Irrigate SAS ou votre nom]</em></li>
-          <li>Adresse : <em>[À compléter]</em></li>
-          <li>SIRET : <em>[À compléter]</em></li>
-          <li>Directeur de la publication : <em>[À compléter]</em></li>
-          <li>Contact : <a href="mailto:contact@irrigate.fr">contact@irrigate.fr</a></li>
+          <li>
+            <strong>Éditeur / directeur de la publication :</strong> Léo Le Coguic
+          </li>
+          <li>
+            <strong>Adresse :</strong> 1 rue George V, 35400 Saint-Malo, France
+          </li>
+          <li>
+            <strong>Statut :</strong> Entrepreneur individuel (activité édition de
+            logiciels / service en ligne)
+          </li>
+          <li>
+            <strong>SIRET :</strong> disponible sur demande à{" "}
+            <a href="mailto:contact@irrigate.fr">contact@irrigate.fr</a>
+          </li>
+          <li>
+            <strong>Contact :</strong>{" "}
+            <a href="mailto:contact@irrigate.fr">contact@irrigate.fr</a>
+          </li>
         </ul>
 
         <h2>2. Hébergement</h2>
