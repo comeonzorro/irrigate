@@ -22,10 +22,12 @@ import json, pathlib, sys
 base = pathlib.Path(sys.argv[1])
 print(json.dumps({
     "site_url": "https://irrigate.fr",
-    "uri_allow_list": "https://irrigate.fr/auth/callback,http://localhost:3000/auth/callback,irrigate://auth/callback",
+    "uri_allow_list": "https://irrigate.fr/**,http://localhost:3000/**,irrigate://auth/callback",
     "mailer_subjects_magic_link": "Votre lien de connexion Irrigate 🌱",
     "mailer_templates_magic_link_content": (base / "magic-link.html").read_text(),
     "mailer_subjects_confirmation": "Bienvenue sur Irrigate — confirmez votre e-mail 🌿",
     "mailer_templates_confirmation_content": (base / "confirm-signup.html").read_text(),
+    "mailer_subjects_recovery": "Réinitialisez votre mot de passe Irrigate 🔐",
+    "mailer_templates_recovery_content": (base / "recovery.html").read_text(),
 }))
 PY

@@ -138,7 +138,7 @@ export function AuthPanel() {
     const { error: resetError } = await supabase.auth.resetPasswordForEmail(
       email.trim(),
       {
-        redirectTo: `${window.location.origin}/auth/callback?next=/compte&reset=1`,
+        redirectTo: `${window.location.origin}/auth/callback?next=${encodeURIComponent("/compte?reset=1")}`,
       }
     );
     setLoading(false);
@@ -180,7 +180,10 @@ export function AuthPanel() {
     setPassword("");
     setConfirmPassword("");
     setMode("sign-in");
-    setMessage("Mot de passe mis à jour. Vous pouvez vous reconnecter.");
+    if (typeof window !== "undefined") {
+      window.history.replaceState({}, "", "/compte");
+    }
+    setMessage("Mot de passe mis à jour.");
   }, [clearFeedback, confirmPassword, password]);
 
   const signOut = useCallback(async () => {

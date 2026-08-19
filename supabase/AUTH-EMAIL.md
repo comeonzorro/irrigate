@@ -48,22 +48,43 @@ source ~/.zshrc
 
 Variables Supabase : `{{ .ConfirmationURL }}`, `{{ .SiteURL }}`, `{{ .Email }}`, etc.
 
-### 4. Expéditeur (optionnel mais pro)
+### 4. Expéditeur `@irrigate.fr` (recommandé)
 
-Par défaut Supabase envoie depuis `noreply@mail.app.supabase.io`.
+Par défaut Supabase envoie depuis `noreply@mail.app.supabase.io` — peu rassurant.
 
-Pour **contact@irrigate.fr** ou **noreply@irrigate.fr** :
+**État actuel** : `irrigate.fr` n'a pas encore de service e-mail Hostinger activé (pas de MX).
 
-Dashboard → **Project Settings** → **Authentication** → **SMTP Settings**
+#### A. Activer l'e-mail gratuit Hostinger (1× dans hPanel)
 
-- Activer **Custom SMTP**
-- Hôte : ton fournisseur (Hostinger, Resend, Brevo…)
-- Port 587, STARTTLS
-- User / password SMTP
-- **Sender email** : `noreply@irrigate.fr`
-- **Sender name** : `Irrigate`
+1. [hPanel → Emails](https://hpanel.hostinger.com/emails)
+2. **Claim free email** → domaine `irrigate.fr` → Confirmer
+3. Attendre la fin du setup DNS (MX, SPF, DKIM)
 
-Sans SMTP custom, les mails partent quand même — ils arrivent souvent en spam.
+#### B. Créer la boîte d'envoi
+
+Dans hPanel → Emails → irrigate.fr → **Mailboxes** → **Add mailbox** :
+
+| Champ | Valeur |
+|-------|--------|
+| Adresse | `noreply` |
+| Mot de passe | fort (12+ car., maj/min/chiffre/spécial) |
+
+Optionnel : créer aussi `contact@irrigate.fr` (déjà cité sur le site).
+
+#### C. Brancher Supabase SMTP
+
+Une fois la boîte créée, depuis le repo :
+
+```bash
+source ~/.zshrc
+export IRRIGATE_SMTP_USER="noreply@irrigate.fr"
+export IRRIGATE_SMTP_PASS="votre-mot-de-passe-boite"
+./supabase/emails/configure-smtp.sh
+```
+
+Paramètres Hostinger utilisés : `smtp.hostinger.com:587` (STARTTLS).
+
+Sans SMTP custom, les templates HTML Irrigate ne peuvent pas être déployés (limitation plan Free Supabase).
 
 ### 5. Schéma base (si pas déjà fait)
 

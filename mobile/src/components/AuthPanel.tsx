@@ -130,7 +130,7 @@ export function AuthPanel() {
     const { error: resetError } = await supabase.auth.resetPasswordForEmail(
       email.trim(),
       {
-        redirectTo: "https://irrigate.fr/auth/callback?next=/compte&reset=1",
+        redirectTo: `https://irrigate.fr/auth/callback?next=${encodeURIComponent("/compte?reset=1")}`,
       }
     );
     setLoading(false);
