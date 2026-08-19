@@ -24,14 +24,14 @@ export default ({ config }: ConfigContext): ExpoConfig => ({
   ],
   ios: {
     supportsTablet: true,
-    bundleIdentifier: "fr.irrigate.app",
+    bundleIdentifier: "com.irrigate-garden.app",
     buildNumber: "1",
     infoPlist: {
       ITSAppUsesNonExemptEncryption: false,
     },
   },
   android: {
-    package: "fr.irrigate.app",
+    package: "com.irrigate-garden.app",
     adaptiveIcon: {
       backgroundColor: "#14532d",
       foregroundImage: "./assets/android-icon-foreground.png",
@@ -44,6 +44,7 @@ export default ({ config }: ConfigContext): ExpoConfig => ({
   },
   extra: {
     apiUrl: process.env.EXPO_PUBLIC_API_URL ?? "https://irrigate.fr",
+    ascAppId: "6802997672",
     router: {},
   },
 });
