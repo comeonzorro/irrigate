@@ -1,9 +1,8 @@
-import type { ExpoConfig, ConfigContext } from "expo/config";
-
-export default ({ config }: ConfigContext): ExpoConfig => ({
-  ...config,
+/** @type {import('expo/config').ExpoConfig} */
+module.exports = {
   name: "Irrigate",
   slug: "irrigate",
+  owner: "leo_theoffnote",
   version: "1.0.0",
   orientation: "portrait",
   icon: "./assets/icon.png",
@@ -25,7 +24,6 @@ export default ({ config }: ConfigContext): ExpoConfig => ({
   ios: {
     supportsTablet: true,
     bundleIdentifier: "com.irrigate-garden.app",
-    buildNumber: "1",
     infoPlist: {
       ITSAppUsesNonExemptEncryption: false,
     },
@@ -43,8 +41,11 @@ export default ({ config }: ConfigContext): ExpoConfig => ({
     favicon: "./assets/favicon.png",
   },
   extra: {
+    eas: {
+      projectId: "aa3c889b-15ab-4412-bcfe-5b4bd709de10",
+    },
     apiUrl: process.env.EXPO_PUBLIC_API_URL ?? "https://irrigate.fr",
     ascAppId: "6802997672",
     router: {},
   },
-});
+};
