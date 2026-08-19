@@ -48,7 +48,7 @@
 
 ## Application mobile (Expo)
 
-Voir [`mobile/README.md`](mobile/README.md) pour builder et soumettre sur l’App Store via **EAS** (WebView native vers irrigate.fr).
+Application **React Native native** dans `mobile/` — voir [`mobile/README.md`](mobile/README.md) pour EAS et App Store. Pas de WebView : UI native + API irrigate.fr.
 
 ## Démarrage local
 

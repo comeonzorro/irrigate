@@ -11,6 +11,7 @@ export default ({ config }: ConfigContext): ExpoConfig => ({
   scheme: "irrigate",
   backgroundColor: "#14532d",
   plugins: [
+    "expo-router",
     [
       "expo-splash-screen",
       {
@@ -42,6 +43,7 @@ export default ({ config }: ConfigContext): ExpoConfig => ({
     favicon: "./assets/favicon.png",
   },
   extra: {
-    webAppUrl: process.env.EXPO_PUBLIC_WEB_APP_URL ?? "https://irrigate.fr",
+    apiUrl: process.env.EXPO_PUBLIC_API_URL ?? "https://irrigate.fr",
+    router: {},
   },
 });

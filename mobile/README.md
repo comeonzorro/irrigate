@@ -1,77 +1,64 @@
-# Irrigate — application mobile (Expo)
+# Irrigate — application mobile native (Expo)
 
-Application React Native (Expo SDK 57) qui encapsule [irrigate.fr](https://irrigate.fr) dans une WebView native. Le moteur de calcul reste côté serveur ; l’app iOS/Android bénéficie des mises à jour web sans republier (sauf changements natifs).
+Application **React Native** avec UI native (pas de WebView). Le moteur de calcul reste sur **irrigate.fr** via les routes API publiques.
+
+## Architecture
+
+| Couche | Rôle |
+|--------|------|
+| **Expo Router** | 4 onglets : Plan, Config, 3D, Shop |
+| **Composants RN** | Formulaires, grille SVG 2D, stats, produits |
+| **Three.js / R3F native** | Vue 3D (`expo-gl` + `@react-three/fiber/native`) |
+| **API** | `POST /api/plan`, `/api/locate`, `/api/products`, `GET /api/varieties` |
 
 ## Prérequis
 
 - Node.js 20+
-- Compte [Expo](https://expo.dev)
-- Compte Apple Developer + app créée sur **App Store Connect**
-- `eas-cli` : `npm install -g eas-cli`
+- Compte [Expo](https://expo.dev) + `npm install -g eas-cli`
+- macOS + Xcode pour simulateur iOS
+- App créée sur **App Store Connect**
 
-## Configuration App Store Connect
+## Configuration
 
-1. Notez le **Bundle ID** exact de votre app (ex. `fr.irrigate.app`).
-2. Ouvrez `app.config.ts` et alignez `ios.bundleIdentifier` (et `android.package` si besoin).
-3. Si votre identifiant diffère, modifiez-le **avant** le premier build EAS.
+1. **Bundle ID** — alignez `ios.bundleIdentifier` dans `app.config.ts` avec App Store Connect (défaut : `fr.irrigate.app`).
+2. **API** — par défaut `https://irrigate.fr`. Pour le dev local :
 
-## Premier lancement local
+```bash
+EXPO_PUBLIC_API_URL=http://192.168.x.x:3000 npm run ios
+```
+
+(Remplacez par l’IP LAN de la machine qui exécute `npm run dev` à la racine du repo.)
+
+## Lancer en local
 
 ```bash
 cd mobile
 npm install
-npm run ios      # simulateur iOS (macOS + Xcode)
-npm run android  # émulateur Android
+npm run ios
+npm run android
 ```
 
-Pour tester contre un serveur local :
-
-```bash
-EXPO_PUBLIC_WEB_APP_URL=http://192.168.x.x:3000 npm run ios
-```
-
-(Remplacez par l’IP LAN de votre machine où tourne `npm run dev` à la racine du monorepo.)
-
-## Build EAS (TestFlight / App Store)
+## Build EAS → App Store
 
 ```bash
 cd mobile
 eas login
-eas init          # lie le projet à votre compte Expo (génère projectId)
+eas init
 eas build --platform ios --profile production
-```
-
-Une fois le build terminé :
-
-```bash
 eas submit --platform ios --profile production
 ```
 
-Expo vous demandera les identifiants Apple / l’app ASC si ce n’est pas déjà configuré. Vous pouvez aussi uploader le `.ipa` manuellement via Transporter.
+| Profil | Usage |
+|--------|--------|
+| `development` | Dev client + simulateur |
+| `preview` | Test interne |
+| `production` | TestFlight / App Store |
 
-### Profils EAS
+## Icônes
 
-| Profil        | Usage                          |
-|---------------|--------------------------------|
-| `development` | Dev client + simulateur        |
-| `preview`     | Build interne (Ad Hoc / test)  |
-| `production`  | App Store / TestFlight         |
+Remplacez les PNG dans `assets/` avant soumission (1024×1024 pour l’App Store).
 
-## Variables d’environnement
+## Évolution
 
-| Variable                   | Défaut              | Description        |
-|----------------------------|---------------------|--------------------|
-| `EXPO_PUBLIC_WEB_APP_URL`  | `https://irrigate.fr` | URL chargée dans la WebView |
-
-Pour EAS Build, définissez la variable dans le dashboard Expo ou via `eas secret:create` si vous utilisez un autre domaine de staging.
-
-## Évolution vers du natif pur
-
-La WebView permet une mise en store rapide. Pour des écrans 100 % natifs plus tard :
-
-- réutiliser les routes API `https://irrigate.fr/api/*` ;
-- porter progressivement les composants React (sans Three.js côté natif au départ, ou via `expo-gl` + R3F native).
-
-## Icônes & splash
-
-Remplacez les fichiers dans `assets/` (`icon.png`, `splash-icon.png`, etc.) avant la soumission App Store.
+- Écrans 100 % offline : porter le moteur en module partagé (monorepo).
+- Notifications météo, export PDF, achats in-app.
