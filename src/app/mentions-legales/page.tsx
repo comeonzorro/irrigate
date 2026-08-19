@@ -66,6 +66,11 @@ export default function MentionsLegalesPage() {
 
         <h2 id="confidentialite">5. Données personnelles</h2>
         <p>
+          Voir la{" "}
+          <Link href="/confidentialite">politique de confidentialité</Link>{" "}
+          dédiée (application mobile et site).
+        </p>
+        <p>
           Les paramètres saisis (code postal, dimensions de parcelle, cultures)
           sont traités pour afficher des recommandations adaptées. Ils ne sont
           pas vendus à des tiers. Le code postal sert uniquement à déterminer

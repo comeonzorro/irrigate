@@ -13,13 +13,19 @@ export function Footer() {
         </div>
         <nav aria-label="Liens légaux" className="flex flex-col gap-2 text-sm">
           <Link
+            href="/assistance"
+            className="text-emerald-800 underline-offset-2 hover:underline"
+          >
+            Assistance
+          </Link>
+          <Link
             href="/mentions-legales"
             className="text-emerald-800 underline-offset-2 hover:underline"
           >
             Mentions légales
           </Link>
           <Link
-            href="/mentions-legales#confidentialite"
+            href="/confidentialite"
             className="text-emerald-800 underline-offset-2 hover:underline"
           >
             Politique de confidentialité
