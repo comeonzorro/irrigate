@@ -26,12 +26,12 @@
               <table role="presentation" cellspacing="0" cellpadding="0" style="margin:0 0 28px;">
                 <tr>
                   <td style="border-radius:10px;background:#047857;">
-                    <a href="{{ .ConfirmationURL }}" style="display:inline-block;padding:14px 28px;font-size:16px;font-weight:600;color:#ffffff;text-decoration:none;">Choisir un nouveau mot de passe</a>
+                    <a href="{{ .SiteURL }}/auth/confirm?token_hash={{ .TokenHash }}&amp;type=recovery" style="display:inline-block;padding:14px 28px;font-size:16px;font-weight:600;color:#ffffff;text-decoration:none;">Choisir un nouveau mot de passe</a>
                   </td>
                 </tr>
               </table>
               <p style="margin:0 0 8px;font-size:14px;line-height:1.5;color:#065f46;">Lien alternatif&nbsp;:</p>
-              <p style="margin:0 0 24px;font-size:13px;line-height:1.5;word-break:break-all;color:#059669;">{{ .ConfirmationURL }}</p>
+              <p style="margin:0 0 24px;font-size:13px;line-height:1.5;word-break:break-all;color:#059669;">{{ .SiteURL }}/auth/confirm?token_hash={{ .TokenHash }}&type=recovery</p>
               <p style="margin:0;font-size:13px;line-height:1.5;color:#6b7280;">
                 Ce lien expire sous 24&nbsp;h. Si vous n'avez pas demandé cette réinitialisation, ignorez cet e-mail — votre mot de passe actuel reste inchangé.
               </p>
