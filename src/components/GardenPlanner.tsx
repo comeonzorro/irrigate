@@ -2,6 +2,7 @@
 
 import dynamic from "next/dynamic";
 import { useCallback, useEffect, useState } from "react";
+import { useMediaQuery } from "@/lib/useMediaQuery";
 import type {
   LocationInfo,
   PlanResult,
@@ -97,6 +98,7 @@ const DEFAULT_CONFIG: PlotConfig = {
 type ViewMode = "2d" | "3d" | "both";
 
 export function GardenPlanner() {
+  const isMobile = useMediaQuery("(max-width: 767px)");
   const [config, setConfig] = useState<PlotConfig>(DEFAULT_CONFIG);
   const [viewMode, setViewMode] = useState<ViewMode>("both");
   const [location, setLocation] = useState<LocationInfo | null>(null);
@@ -117,6 +119,12 @@ export function GardenPlanner() {
   const updateConfig = useCallback((patch: Partial<PlotConfig>) => {
     setConfig((prev) => ({ ...prev, ...patch }));
   }, []);
+
+  useEffect(() => {
+    if (isMobile && viewMode === "both") {
+      setViewMode("2d");
+    }
+  }, [isMobile, viewMode]);
 
   useEffect(() => {
     let cancelled = false;
@@ -262,7 +270,9 @@ export function GardenPlanner() {
                 [
                   { id: "2d" as const, label: "Plan 2D" },
                   { id: "3d" as const, label: "Vue 3D" },
-                  { id: "both" as const, label: "Les deux" },
+                  ...(isMobile
+                    ? []
+                    : [{ id: "both" as const, label: "Les deux" }]),
                 ] as const
               ).map((tab) => (
                 <button

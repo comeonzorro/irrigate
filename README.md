@@ -46,6 +46,10 @@
 - [ ] **Base variétés** enrichie (INRAE, Kokopelli)
 - [ ] **Export PDF** du plan
 
+## Application mobile (Expo)
+
+Voir [`mobile/README.md`](mobile/README.md) pour builder et soumettre sur l’App Store via **EAS** (WebView native vers irrigate.fr).
+
 ## Démarrage local
 
 ```bash
