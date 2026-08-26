@@ -6,6 +6,7 @@ import { useRouter } from "next/navigation";
 import { locatePostalCode } from "@/lib/api/client";
 import type { CityAccess } from "@/lib/projects/types";
 import { getCityAccess, setCityAccess, ensureDefaultProject } from "@/lib/projects/storage";
+import { AppStoreCta } from "@/components/AppStoreCta";
 import { Header } from "@/components/Header";
 
 const GardenPlanner = dynamic(
@@ -84,7 +85,11 @@ export function CityGateLanding() {
 
       {/* Formulaire */}
       <div className="relative z-10 flex min-h-screen flex-col">
-        <div className="flex flex-1 items-center justify-center px-4 py-12">
+        <div className="flex flex-1 flex-col items-center justify-center gap-6 px-4 py-12">
+          <div className="w-full max-w-lg">
+            <AppStoreCta variant="banner" />
+          </div>
+
           <div className="w-full max-w-lg rounded-3xl border border-white/30 bg-white/75 p-8 shadow-2xl shadow-emerald-950/10 backdrop-blur-xl">
             <p className="text-sm font-semibold uppercase tracking-wide text-emerald-600">
               Bienvenue sur Irrigate
@@ -132,6 +137,15 @@ export function CityGateLanding() {
                 {loading ? "Localisation…" : "Accéder au planificateur →"}
               </button>
             </form>
+
+            <div className="mt-6 space-y-4 border-t border-emerald-200/80 pt-6">
+              <p className="text-center text-sm text-emerald-800">
+                Ou téléchargez l&apos;app gratuite pour iPhone et iPad
+              </p>
+              <div className="flex justify-center">
+                <AppStoreCta variant="button" />
+              </div>
+            </div>
 
             <p className="mt-6 text-xs text-emerald-600">
               France métropolitaine · Sauvegarde cloud via votre compte sur{" "}

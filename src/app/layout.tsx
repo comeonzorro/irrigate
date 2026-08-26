@@ -16,7 +16,7 @@ const jetbrains = JetBrains_Mono({
 export const metadata: Metadata = {
   title: "Irrigate.fr — Planificateur de potager intelligent",
   description:
-    "Planifiez votre potager, calculez l'arrosage idéal et visualisez votre réseau d'irrigation en 2D et 3D. Code postal, cultures, rendement.",
+    "Planifiez votre potager, calculez l'arrosage idéal et visualisez votre réseau d'irrigation en 2D et 3D. Application iOS gratuite sur l'App Store.",
   metadataBase: new URL("https://irrigate.fr"),
   openGraph: {
     title: "Irrigate.fr",

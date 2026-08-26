@@ -22,6 +22,7 @@ import { PlotGrid } from "@/components/PlotGrid";
 import { ResultsPanel } from "@/components/ResultsPanel";
 import { IrrigationSolutionsGuide } from "@/components/IrrigationSolutionsGuide";
 import { ProductRecommendations } from "@/components/ProductRecommendations";
+import { AppStoreCta } from "@/components/AppStoreCta";
 import { Footer } from "@/components/Footer";
 
 const PlotView3D = dynamic(
@@ -224,14 +225,24 @@ export function GardenPlanner({
         aria-hidden={previewMode}
       >
         <div className="mb-8 rounded-2xl bg-gradient-to-r from-emerald-800 to-emerald-600 p-6 text-white shadow-lg">
-          <h2 className="text-xl font-semibold">
-            Votre potager, votre arrosage, votre récolte
-          </h2>
-          <p className="mt-2 max-w-2xl text-emerald-100">
-            Planifiez votre parcelle en quelques clics. Entrez votre code postal,
-            choisissez vos cultures et visualisez le réseau d&apos;irrigation en
-            2D ou 3D.
-          </p>
+          <div className="flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
+            <div>
+              <h2 className="text-xl font-semibold">
+                Votre potager, votre arrosage, votre récolte
+              </h2>
+              <p className="mt-2 max-w-2xl text-emerald-100">
+                Planifiez votre parcelle en quelques clics. Entrez votre code
+                postal, choisissez vos cultures et visualisez le réseau
+                d&apos;irrigation en 2D ou 3D.
+              </p>
+            </div>
+            {!previewMode ? (
+              <AppStoreCta
+                variant="button"
+                className="shrink-0 !bg-white !text-emerald-900 hover:!bg-emerald-50"
+              />
+            ) : null}
+          </div>
         </div>
 
         {planLoading && (

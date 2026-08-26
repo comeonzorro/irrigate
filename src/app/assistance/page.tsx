@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import Link from "next/link";
+import { AppStoreCta } from "@/components/AppStoreCta";
 import { Header } from "@/components/Header";
 import { Footer } from "@/components/Footer";
 
@@ -25,7 +26,7 @@ const FAQ = [
   },
   {
     q: "La vue 3D ne répond pas sur mobile",
-    a: "Utilisez le bouton « Plein écran » sur le site, ou l'onglet 3D de l'application native. Un doigt pour pivoter, deux doigts pour zoomer et déplacer.",
+    a: "Utilisez le bouton « Plein écran » sur le site, ou l'onglet 3D de l'application native gratuite sur l'App Store. Un doigt pour pivoter, deux doigts pour zoomer et déplacer.",
   },
   {
     q: "Mes données sont-elles vendues ?",
@@ -55,6 +56,8 @@ export default function AssistancePage() {
         <p className="mt-2 text-emerald-700">
           Aide pour irrigate.fr et l&apos;application Irrigate (iOS).
         </p>
+
+        <AppStoreCta variant="card" className="mt-8" />
 
         <section className="mt-8 rounded-2xl border border-emerald-200 bg-white p-6 shadow-sm">
           <h2 className="text-lg font-semibold text-emerald-900">Nous contacter</h2>

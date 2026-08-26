@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import Link from "next/link";
+import { AppStoreCta } from "@/components/AppStoreCta";
 import { Header } from "@/components/Header";
 import { Footer } from "@/components/Footer";
 
@@ -19,6 +20,8 @@ export default function MentionsLegalesPage() {
         >
           ← Retour à l&apos;accueil
         </Link>
+
+        <AppStoreCta variant="card" className="not-prose mb-8" />
 
         <h1>Mentions légales</h1>
         <p className="text-sm text-emerald-600">Dernière mise à jour : août 2026</p>

@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import Link from "next/link";
+import { AppStoreCta } from "@/components/AppStoreCta";
 import { Header } from "@/components/Header";
 import { Footer } from "@/components/Footer";
 
@@ -21,6 +22,8 @@ export default function ConfidentialitePage() {
         >
           ← Retour à l&apos;accueil
         </Link>
+
+        <AppStoreCta variant="card" className="not-prose mb-8" />
 
         <h1>Politique de confidentialité</h1>
         <p className="text-sm text-emerald-600">

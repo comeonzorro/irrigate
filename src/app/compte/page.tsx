@@ -3,6 +3,7 @@
 import Link from "next/link";
 import { Header } from "@/components/Header";
 import { Footer } from "@/components/Footer";
+import { AppStoreCta } from "@/components/AppStoreCta";
 import { AuthPanel } from "@/components/AuthPanel";
 import { useEffect, useState } from "react";
 import { loadProjectStore } from "@/lib/projects/storage";
@@ -28,6 +29,8 @@ export default function ComptePage() {
         </div>
 
         <AuthPanel />
+
+        <AppStoreCta variant="card" />
 
         <section className="rounded-2xl border border-emerald-200 bg-white p-5">
           <h2 className="font-semibold text-emerald-900">

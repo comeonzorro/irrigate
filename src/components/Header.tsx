@@ -1,4 +1,5 @@
 import Link from "next/link";
+import { AppStoreCta } from "@/components/AppStoreCta";
 
 export function Header() {
   return (
@@ -10,22 +11,26 @@ export function Header() {
             Planifiez votre potager, optimisez l&apos;arrosage
           </p>
         </Link>
-        <nav className="hidden shrink-0 items-center gap-4 text-sm sm:flex">
+        <nav className="flex shrink-0 items-center gap-3 text-sm sm:gap-4">
           <Link
             href="/app"
-            className="text-emerald-200 hover:text-white"
+            className="hidden text-emerald-200 hover:text-white sm:inline"
           >
             Planificateur
           </Link>
           <Link
             href="/compte"
-            className="text-emerald-200 hover:text-white"
+            className="hidden text-emerald-200 hover:text-white md:inline"
           >
             Mon compte
           </Link>
+          <AppStoreCta
+            variant="button"
+            className="!bg-white !px-3 !py-2 !text-emerald-900 hover:!bg-emerald-50 sm:!px-4"
+          />
           <Link
             href="/mentions-legales"
-            className="text-emerald-200 hover:text-white"
+            className="hidden text-emerald-200 hover:text-white lg:inline"
           >
             Mentions légales
           </Link>
