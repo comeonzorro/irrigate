@@ -42,14 +42,14 @@ export function isValidProjectUuid(id: string): boolean {
   return UUID_RE.test(id);
 }
 
-/** Évite les collisions d'id avec un autre compte (RLS upsert). */
-export function reassignForeignProjectIds(
+/** Attribue un nouvel id aux projets absents du cloud du compte (évite collision RLS inter-comptes). */
+export function reassignUnownedProjectIds(
   projects: SavedProject[],
-  foreignIds: Set<string>
+  ownedIds: Set<string>
 ): { projects: SavedProject[]; idRemap: Record<string, string> } {
   const idRemap: Record<string, string> = {};
   const next = projects.map((project) => {
-    if (!foreignIds.has(project.id)) return project;
+    if (ownedIds.has(project.id)) return project;
     const newId = crypto.randomUUID();
     idRemap[project.id] = newId;
     return {

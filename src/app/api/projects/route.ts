@@ -2,7 +2,7 @@ import { NextResponse } from "next/server";
 import { createClient } from "@/lib/supabase/server";
 import {
   isValidProjectUuid,
-  reassignForeignProjectIds,
+  reassignUnownedProjectIds,
   rowToSavedProject,
   savedProjectToRow,
 } from "@/lib/projects/sync";
@@ -78,33 +78,51 @@ export async function POST(request: Request) {
       );
     }
 
-    const ids = validProjects.map((p) => p.id);
-    const { data: existingRows, error: lookupError } = await supabase
+    const { data: ownedRows, error: ownedError } = await supabase
       .from("projects")
-      .select("id, user_id")
-      .in("id", ids);
+      .select("id")
+      .eq("user_id", user.id);
 
-    if (lookupError) {
-      return NextResponse.json({ error: lookupError.message }, { status: 500 });
+    if (ownedError) {
+      return NextResponse.json({ error: ownedError.message }, { status: 500 });
     }
 
-    const foreignIds = new Set(
-      (existingRows ?? [])
-        .filter((row) => row.user_id !== user.id)
-        .map((row) => row.id)
-    );
+    const ownedIds = new Set((ownedRows ?? []).map((row) => row.id));
 
-    const { projects: safeProjects, idRemap } = reassignForeignProjectIds(
+    const { projects: safeProjects, idRemap } = reassignUnownedProjectIds(
       validProjects,
-      foreignIds
+      ownedIds
     );
 
     const rows = safeProjects.map((p) => savedProjectToRow(p, user.id));
+    const updateRows = rows.filter((row) => ownedIds.has(row.id));
+    const insertRows = rows.filter((row) => !ownedIds.has(row.id));
+
+    if (updateRows.length > 0) {
+      const { error: updateError } = await supabase
+        .from("projects")
+        .upsert(updateRows, { onConflict: "id" });
+
+      if (updateError) {
+        return NextResponse.json({ error: updateError.message }, { status: 500 });
+      }
+    }
+
+    if (insertRows.length > 0) {
+      const { error: insertError } = await supabase
+        .from("projects")
+        .insert(insertRows);
+
+      if (insertError) {
+        return NextResponse.json({ error: insertError.message }, { status: 500 });
+      }
+    }
 
     const { data, error } = await supabase
       .from("projects")
-      .upsert(rows, { onConflict: "id" })
-      .select("*");
+      .select("*")
+      .eq("user_id", user.id)
+      .order("updated_at", { ascending: false });
 
     if (error) {
       return NextResponse.json({ error: error.message }, { status: 500 });
@@ -133,12 +151,13 @@ export async function POST(request: Request) {
 
   let projectId = body.project.id ?? crypto.randomUUID();
   if (isValidProjectUuid(projectId)) {
-    const { data: existing } = await supabase
+    const { data: owned } = await supabase
       .from("projects")
-      .select("user_id")
+      .select("id")
+      .eq("user_id", user.id)
       .eq("id", projectId)
       .maybeSingle();
-    if (existing && existing.user_id !== user.id) {
+    if (!owned) {
       projectId = crypto.randomUUID();
     }
   }

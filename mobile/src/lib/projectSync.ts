@@ -90,13 +90,13 @@ function normalizeProjectsForCloud(store: ProjectStore): ProjectStore {
   return { projects, activeProjectId };
 }
 
-function reassignForeignProjectIds(
+function reassignUnownedProjectIds(
   projects: SavedProject[],
-  foreignIds: Set<string>
+  ownedIds: Set<string>
 ): { projects: SavedProject[]; idRemap: Record<string, string> } {
   const idRemap: Record<string, string> = {};
   const next = projects.map((project) => {
-    if (!foreignIds.has(project.id)) return project;
+    if (ownedIds.has(project.id)) return project;
     const newId = createProjectId();
     idRemap[project.id] = newId;
     return {
@@ -150,32 +150,29 @@ export async function syncProjectStoreWithCloud(
   const merged = mergeProjects(normalized.projects, remote);
   const activeProjectId = resolveActiveProjectId(normalized, merged);
 
-  if (merged.length > 0) {
-    const ids = merged.map((project) => project.id);
-    const { data: existingRows, error: lookupError } = await supabase
-      .from("projects")
-      .select("id, user_id")
-      .in("id", ids);
+  const ownedIds = new Set(remote.map((project) => project.id));
 
-    if (lookupError) return null;
+  const { projects: safeProjects, idRemap } = reassignUnownedProjectIds(
+    merged,
+    ownedIds
+  );
 
-    const foreignIds = new Set(
-      (existingRows ?? [])
-        .filter((row) => row.user_id !== user.id)
-        .map((row) => row.id)
-    );
-
-    const { projects: safeProjects, idRemap } = reassignForeignProjectIds(
-      merged,
-      foreignIds
-    );
-
+  if (safeProjects.length > 0) {
     const rows = safeProjects.map((project) => savedProjectToRow(project, user.id));
-    const { error: upsertError } = await supabase
-      .from("projects")
-      .upsert(rows, { onConflict: "id" });
+    const updateRows = rows.filter((row) => ownedIds.has(row.id));
+    const insertRows = rows.filter((row) => !ownedIds.has(row.id));
 
-    if (upsertError) return null;
+    if (updateRows.length > 0) {
+      const { error: updateError } = await supabase
+        .from("projects")
+        .upsert(updateRows, { onConflict: "id" });
+      if (updateError) return null;
+    }
+
+    if (insertRows.length > 0) {
+      const { error: insertError } = await supabase.from("projects").insert(insertRows);
+      if (insertError) return null;
+    }
 
     const remappedActive = normalized.activeProjectId
       ? (idRemap[normalized.activeProjectId] ?? normalized.activeProjectId)
