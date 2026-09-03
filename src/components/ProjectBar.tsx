@@ -12,6 +12,7 @@ interface ProjectBarProps {
   onDelete: (id: string) => void;
   onRename: (id: string, name: string) => void;
   syncing?: boolean;
+  onSyncNow?: () => void;
 }
 
 export function ProjectBar({
@@ -22,8 +23,10 @@ export function ProjectBar({
   onDelete,
   onRename,
   syncing,
+  onSyncNow,
 }: ProjectBarProps) {
   const city = getCityAccess();
+  const pendingCloud = projects.some((p) => p.localOnly);
 
   return (
     <section className="mb-6 rounded-2xl border border-emerald-200/70 bg-white/90 p-4 shadow-sm backdrop-blur">
@@ -82,7 +85,26 @@ export function ProjectBar({
         <p className="mt-2 text-xs text-emerald-600" role="status">
           Synchronisation cloud…
         </p>
-      ) : null}
+      ) : pendingCloud ? (
+        <div className="mt-2 flex flex-wrap items-center gap-2 text-xs text-amber-800">
+          <span role="status">
+            💾 Sauvegarde locale — envoi cloud en attente
+          </span>
+          {onSyncNow ? (
+            <button
+              type="button"
+              onClick={onSyncNow}
+              className="rounded-full border border-amber-400 bg-white px-2.5 py-0.5 font-semibold hover:bg-amber-50"
+            >
+              Synchroniser
+            </button>
+          ) : null}
+        </div>
+      ) : (
+        <p className="mt-2 text-xs text-emerald-600" role="status">
+          ☁️ Sauvegarde automatique — synchronisé avec le cloud
+        </p>
+      )}
 
       <div className="mt-4 flex flex-wrap gap-2">
         {projects.map((project) => {
@@ -102,7 +124,7 @@ export function ProjectBar({
                 className="text-sm font-medium text-emerald-900"
               >
                 {project.name}
-                {project.localOnly ? " · local" : ""}
+                {project.localOnly ? " · local" : " · ☁️"}
               </button>
               <button
                 type="button"

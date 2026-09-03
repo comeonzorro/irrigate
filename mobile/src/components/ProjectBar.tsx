@@ -41,6 +41,7 @@ export function ProjectBar({
                 <Pressable onPress={() => onSelect(project.id)}>
                   <Text style={[styles.chipText, selected && styles.chipTextSelected]}>
                     {project.name}
+                    {project.localOnly ? " · local" : " · ☁️"}
                   </Text>
                 </Pressable>
                 {projects.length > 1 ? (

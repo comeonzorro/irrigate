@@ -152,6 +152,14 @@ export function AppShell() {
     [activeProject, guestMode, store]
   );
 
+  const handleManualSync = useCallback(() => {
+    if (guestMode) return;
+    void syncCloud(store).then((next) => {
+      hasSyncedOnce.current = true;
+      if (next) setStore(next);
+    });
+  }, [guestMode, store, syncCloud]);
+
   const handleSelect = useCallback((id: string) => {
     const next = loadProjectStore();
     next.activeProjectId = id;
@@ -245,6 +253,7 @@ export function AppShell() {
         onDelete={handleDelete}
         onRename={handleRename}
         syncing={syncing}
+        onSyncNow={handleManualSync}
       />
       <GardenPlanner
         key={activeProject.id}
