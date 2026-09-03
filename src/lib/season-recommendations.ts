@@ -55,6 +55,243 @@ function monthsUntil(from: MonthIndex, to: MonthIndex): number {
   return 12 - from + to;
 }
 
+export function getPlantingMonthsForVariety(
+  variety: PublicVariety,
+  hasGreenhouse: boolean
+): MonthIndex[] {
+  return getPlantingMonths(variety, hasGreenhouse);
+}
+
+export function isVarietyInSeasonNow(
+  variety: PublicVariety,
+  hasGreenhouse: boolean,
+  month: MonthIndex = getCurrentMonth()
+): boolean {
+  return getPlantingMonths(variety, hasGreenhouse).includes(month);
+}
+
+export type EnvironmentSolutionType =
+  | "greenhouse"
+  | "cold_frame"
+  | "row_cover"
+  | "mulch"
+  | "wait";
+
+export interface EnvironmentSolution {
+  type: EnvironmentSolutionType;
+  emoji: string;
+  title: string;
+  description: string;
+  action?: "enable_greenhouse";
+}
+
+export interface OffSeasonAdvice {
+  variety: PublicVariety;
+  nextPlantingMonth: MonthIndex | null;
+  solutions: EnvironmentSolution[];
+}
+
+export interface TimelineMonth {
+  month: MonthIndex;
+  label: string;
+  shortLabel: string;
+  seasonKey: "printemps" | "ete" | "automne" | "hiver";
+  isCurrent: boolean;
+  varieties: PublicVariety[];
+}
+
+export interface SeasonTimeline {
+  currentMonth: MonthIndex;
+  currentMonthLabel: string;
+  currentSeasonLabel: string;
+  months: TimelineMonth[];
+  currentVarieties: PublicVariety[];
+}
+
+const MONTH_SHORT = [
+  "Jan",
+  "Fév",
+  "Mar",
+  "Avr",
+  "Mai",
+  "Jun",
+  "Jul",
+  "Aoû",
+  "Sep",
+  "Oct",
+  "Nov",
+  "Déc",
+] as const;
+
+function getSeasonKeyForMonth(month: MonthIndex): TimelineMonth["seasonKey"] {
+  if (month >= 3 && month <= 5) return "printemps";
+  if (month >= 6 && month <= 8) return "ete";
+  if (month >= 9 && month <= 11) return "automne";
+  return "hiver";
+}
+
+const CURRENT_SEASON_LABELS: Record<TimelineMonth["seasonKey"], string> = {
+  printemps: "Printemps",
+  ete: "Été",
+  automne: "Automne",
+  hiver: "Hiver",
+};
+
+function buildEnvironmentSolutions(
+  variety: PublicVariety,
+  hasGreenhouse: boolean,
+  month: MonthIndex
+): EnvironmentSolution[] {
+  const season = variety.season ?? "perenne";
+  const nextMonth = getNextPlantingMonth(variety, month, hasGreenhouse);
+  const solutions: EnvironmentSolution[] = [];
+
+  if (variety.requiresGreenhouse && !hasGreenhouse) {
+    solutions.push({
+      type: "greenhouse",
+      emoji: "🏠",
+      title: "Serre ou tunnel",
+      description:
+        "Cette variété est conçue pour un abri. Activez le mode serre pour ajuster le plan et débloquer les calculs adaptés.",
+      action: "enable_greenhouse",
+    });
+  }
+
+  if (!hasGreenhouse && (season === "ete" || season === "printemps")) {
+    if (month >= 9 || month <= 2) {
+      solutions.push({
+        type: "greenhouse",
+        emoji: "🏠",
+        title: "Serre / tunnel",
+        description:
+          "Permet de avancer les semis de 4 à 8 semaines et de cultiver hors saison en climat frais.",
+        action: "enable_greenhouse",
+      });
+      solutions.push({
+        type: "cold_frame",
+        emoji: "🪟",
+        title: "Châssis ou mini-serre",
+        description:
+          "Alternative légère : protège des gelées et accélère le démarrage au printemps.",
+      });
+    }
+  }
+
+  if (season === "ete" && month >= 6 && month <= 8 && !hasGreenhouse) {
+    solutions.push({
+      type: "mulch",
+      emoji: "🌾",
+      title: "Paillage épais",
+      description:
+        "Si vous insistez sur cette culture en pleine terre, le paillage limite le stress hydrique et thermique.",
+    });
+  }
+
+  if ((season === "hiver" || season === "automne") && month >= 3 && month <= 8) {
+    solutions.push({
+      type: "wait",
+      emoji: "📅",
+      title: "Attendre la bonne fenêtre",
+      description: nextMonth
+        ? `Semis/plantation conseillés en ${getMonthLabel(nextMonth).toLowerCase()}. Gardez-la dans le plan pour préparer.`
+        : "Reportez la plantation à la prochaine saison favorable.",
+    });
+  }
+
+  if (season === "ete" && (month === 12 || month <= 2)) {
+    solutions.push({
+      type: "row_cover",
+      emoji: "🧣",
+      title: "Voile d'hivernage",
+      description:
+        "Pour un essai très anticipé : voile P17 sous tunnel bas, avec chauffage du sol si possible.",
+    });
+  }
+
+  if (hasGreenhouse && !isVarietyInSeasonNow(variety, true, month)) {
+    solutions.push({
+      type: "cold_frame",
+      emoji: "🌡️",
+      title: "Réguler la serre",
+      description:
+        "Même en serre, cette culture sort de sa fenêtre idéale : aérez, surveillez l'humidité et attendez-vous à une croissance plus lente.",
+    });
+  }
+
+  if (nextMonth && !solutions.some((s) => s.type === "wait")) {
+    solutions.push({
+      type: "wait",
+      emoji: "⏳",
+      title: `Plutôt en ${getMonthLabel(nextMonth).toLowerCase()}`,
+      description:
+        "C'est la fenêtre naturelle pour cette espèce dans votre région.",
+    });
+  }
+
+  const seen = new Set<EnvironmentSolutionType>();
+  return solutions.filter((s) => {
+    if (seen.has(s.type)) return false;
+    seen.add(s.type);
+    return true;
+  });
+}
+
+export function assessOffSeasonSelections(
+  varieties: PublicVariety[],
+  selectedIds: string[],
+  hasGreenhouse: boolean
+): OffSeasonAdvice[] {
+  const month = getCurrentMonth();
+  const byId = new Map(varieties.map((v) => [v.id, v]));
+
+  return selectedIds
+    .map((id) => byId.get(id))
+    .filter((v): v is PublicVariety => Boolean(v))
+    .filter((v) => !isVarietyInSeasonNow(v, hasGreenhouse, month))
+    .map((variety) => ({
+      variety,
+      nextPlantingMonth: getNextPlantingMonth(variety, month, hasGreenhouse),
+      solutions: buildEnvironmentSolutions(variety, hasGreenhouse, month),
+    }));
+}
+
+export function buildSeasonTimeline(
+  varieties: PublicVariety[],
+  hasGreenhouse: boolean
+): SeasonTimeline {
+  const currentMonth = getCurrentMonth();
+  const months: TimelineMonth[] = [];
+
+  for (let m = 1; m <= 12; m++) {
+    const month = m as MonthIndex;
+    const monthVarieties = varieties.filter((v) =>
+      getPlantingMonths(v, hasGreenhouse).includes(month)
+    );
+    months.push({
+      month,
+      label: getMonthLabel(month),
+      shortLabel: MONTH_SHORT[m - 1]!,
+      seasonKey: getSeasonKeyForMonth(month),
+      isCurrent: month === currentMonth,
+      varieties: monthVarieties.slice(0, 6),
+    });
+  }
+
+  const currentVarieties = varieties.filter((v) =>
+    isVarietyInSeasonNow(v, hasGreenhouse, currentMonth)
+  );
+
+  const seasonKey = getSeasonKeyForMonth(currentMonth);
+
+  return {
+    currentMonth,
+    currentMonthLabel: getMonthLabel(currentMonth),
+    currentSeasonLabel: CURRENT_SEASON_LABELS[seasonKey],
+    months,
+    currentVarieties: currentVarieties.slice(0, 10),
+  };
+}
+
 function getPlantingMonths(
   variety: PublicVariety,
   hasGreenhouse: boolean

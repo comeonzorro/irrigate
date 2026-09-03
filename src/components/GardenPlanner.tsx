@@ -27,6 +27,8 @@ import { Footer } from "@/components/Footer";
 import { PlannerLock } from "@/components/PlannerLock";
 import { PlannerToolTiles } from "@/components/PlannerToolTiles";
 import { SeasonalRecommendationsPanel } from "@/components/SeasonalRecommendationsPanel";
+import { SeasonTimelineBanner } from "@/components/SeasonTimelineBanner";
+import { OffSeasonEnvironmentPanel } from "@/components/OffSeasonEnvironmentPanel";
 
 const PlotView3D = dynamic(
   () => import("@/components/PlotView3D").then((m) => m.PlotView3D),
@@ -274,6 +276,22 @@ export function GardenPlanner({
           </div>
         </div>
 
+        {!guestMode &&
+        !previewMode &&
+        config.postalCode.length === 5 &&
+        !varietiesLoading ? (
+          <SeasonTimelineBanner
+            varieties={varieties}
+            config={config}
+            onSelectVariety={(id) => {
+              if (config.selectedVarieties.includes(id)) return;
+              updateConfig({
+                selectedVarieties: [...config.selectedVarieties, id],
+              });
+            }}
+          />
+        ) : null}
+
         {embedded ? <PlannerToolTiles /> : null}
 
         {planLoading && (
@@ -331,6 +349,13 @@ export function GardenPlanner({
                 }
               />
             </PlannerLock>
+            {!guestMode && !previewMode && config.selectedVarieties.length > 0 ? (
+              <OffSeasonEnvironmentPanel
+                varieties={varieties}
+                config={config}
+                onEnableGreenhouse={() => updateConfig({ hasGreenhouse: true })}
+              />
+            ) : null}
             {!guestMode && config.selectedVarieties.length > 0 && (
               <LayoutAdviceBanner
                 advice={plan.layoutAdvice}
