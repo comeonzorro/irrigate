@@ -26,6 +26,7 @@ import { AppStoreCta } from "@/components/AppStoreCta";
 import { Footer } from "@/components/Footer";
 import { PlannerLock } from "@/components/PlannerLock";
 import { PlannerToolTiles } from "@/components/PlannerToolTiles";
+import { SeasonalRecommendationsPanel } from "@/components/SeasonalRecommendationsPanel";
 
 const PlotView3D = dynamic(
   () => import("@/components/PlotView3D").then((m) => m.PlotView3D),
@@ -294,6 +295,26 @@ export function GardenPlanner({
             <PlannerLock locked={locked} hint={lockHint}>
               <PlotSetup config={config} onChange={updateConfig} />
             </PlannerLock>
+            {!guestMode && !previewMode ? (
+              <SeasonalRecommendationsPanel
+                varieties={varieties}
+                config={config}
+                loading={varietiesLoading}
+                onAddVariety={(id) => {
+                  if (config.selectedVarieties.includes(id)) return;
+                  updateConfig({
+                    selectedVarieties: [...config.selectedVarieties, id],
+                  });
+                }}
+                onAddVarieties={(ids) => {
+                  const merged = [...config.selectedVarieties];
+                  for (const id of ids) {
+                    if (!merged.includes(id)) merged.push(id);
+                  }
+                  updateConfig({ selectedVarieties: merged });
+                }}
+              />
+            ) : null}
             <PlannerLock locked={locked} hint={lockHint}>
               <CropSelector
                 config={config}
