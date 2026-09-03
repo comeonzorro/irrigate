@@ -252,6 +252,7 @@ export function AppShell() {
         initialLocation={activeProject.location}
         onPersist={persistProject}
         embedded
+        projectName={activeProject.name}
       />
     </>
   );

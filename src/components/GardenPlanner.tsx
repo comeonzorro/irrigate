@@ -109,6 +109,8 @@ interface GardenPlannerProps {
   embedded?: boolean;
   /** Mode invité : plan vide, contrôles grisés */
   guestMode?: boolean;
+  /** Nom du projet actif (export PDF, etc.) */
+  projectName?: string;
 }
 
 export function GardenPlanner({
@@ -118,6 +120,7 @@ export function GardenPlanner({
   previewMode = false,
   embedded = false,
   guestMode = false,
+  projectName = "Mon potager",
 }: GardenPlannerProps = {}) {
   const isMobile = useMediaQuery("(max-width: 767px)");
   const [config, setConfig] = useState<PlotConfig>(
@@ -427,6 +430,7 @@ export function GardenPlanner({
               products={products}
               loading={productsLoading}
               regionName={location?.regionName}
+              projectName={projectName}
             />
           </PlannerLock>
           <PlannerLock locked={locked} hint={lockHint}>

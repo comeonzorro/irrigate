@@ -88,6 +88,7 @@ export interface PublicVariety {
   emoji: string;
   color: string;
   cropId: string;
+  season?: "printemps" | "ete" | "automne" | "hiver" | "perenne";
   recommended?: boolean;
   requiresGreenhouse?: boolean;
 }

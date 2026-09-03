@@ -25,6 +25,33 @@ const FEATURES = [
   },
 ];
 
+const TOOLS = [
+  {
+    href: "/calendrier",
+    emoji: "📅",
+    title: "Calendrier des saisons",
+    description: "Semis, plantations et récoltes mois par mois.",
+  },
+  {
+    href: "/compost",
+    emoji: "♻️",
+    title: "Pas-à-pas compost",
+    description: "Fabriquez et utilisez votre compost au potager.",
+  },
+  {
+    href: "/compte/materiel",
+    emoji: "🛠️",
+    title: "Inventaire matériel",
+    description: "Cochez votre équipement et exportez la liste d'achats en PDF.",
+  },
+  {
+    href: "/compte/journal",
+    emoji: "📓",
+    title: "Journal de suivi",
+    description: "Notez récoltes et difficultés pour chaque projet.",
+  },
+] as const;
+
 export function MarketingLanding() {
   return (
     <>
@@ -94,6 +121,40 @@ export function MarketingLanding() {
             </li>
           ))}
         </ul>
+      </section>
+
+      <section className="border-b border-emerald-200/60 bg-white px-4 py-14">
+        <div className="mx-auto max-w-6xl">
+          <h2 className="text-center text-2xl font-bold text-emerald-950">
+            Outils potager
+          </h2>
+          <p className="mx-auto mt-2 max-w-xl text-center text-emerald-800">
+            Calendrier, compost, inventaire et journal — gratuits sur le web.
+          </p>
+          <ul className="mt-8 grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
+            {TOOLS.map((tool) => (
+              <li key={tool.href}>
+                <Link
+                  href={tool.href}
+                  className="flex h-full flex-col rounded-2xl border border-emerald-200/70 bg-emerald-50/50 p-5 transition hover:border-emerald-400 hover:bg-emerald-50"
+                >
+                  <span className="text-2xl" aria-hidden="true">
+                    {tool.emoji}
+                  </span>
+                  <h3 className="mt-3 font-bold text-emerald-950">
+                    {tool.title}
+                  </h3>
+                  <p className="mt-2 flex-1 text-sm leading-relaxed text-emerald-800">
+                    {tool.description}
+                  </p>
+                  <span className="mt-4 text-sm font-semibold text-emerald-700">
+                    Découvrir →
+                  </span>
+                </Link>
+              </li>
+            ))}
+          </ul>
+        </div>
       </section>
 
       <LandingScreenshots />

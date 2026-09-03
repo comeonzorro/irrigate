@@ -9,6 +9,45 @@ import { useEffect, useState } from "react";
 import { loadProjectStore } from "@/lib/projects/storage";
 import type { SavedProject } from "@/lib/projects/types";
 
+const HUB_CARDS = [
+  {
+    href: "/compte/projets",
+    emoji: "🗂️",
+    title: "Mes projets",
+    description: "Galerie de tous vos potagers — ouvrez-en un en un clic.",
+  },
+  {
+    href: "/compte/materiel",
+    emoji: "🛠️",
+    title: "Inventaire matériel",
+    description: "Cochez ce que vous possédez déjà pour affiner les achats.",
+  },
+  {
+    href: "/compte/journal",
+    emoji: "📓",
+    title: "Journal de suivi",
+    description: "Récoltes, difficultés et observations au fil des saisons.",
+  },
+  {
+    href: "/calendrier",
+    emoji: "📅",
+    title: "Calendrier des saisons",
+    description: "Quand semer, planter et récolter selon votre région.",
+  },
+  {
+    href: "/compost",
+    emoji: "♻️",
+    title: "Pas-à-pas compost",
+    description: "Guides étape par étape pour fabriquer votre compost.",
+  },
+  {
+    href: "/app",
+    emoji: "🌱",
+    title: "Planificateur",
+    description: "Dimensionnez parcelle, cultures et irrigation.",
+  },
+] as const;
+
 export default function ComptePage() {
   const [projects, setProjects] = useState<SavedProject[]>([]);
 
@@ -32,10 +71,36 @@ export default function ComptePage() {
 
         <AppStoreCta variant="card" />
 
+        <section className="grid gap-4 sm:grid-cols-2">
+          {HUB_CARDS.map((card) => (
+            <Link
+              key={card.href}
+              href={card.href}
+              className="rounded-2xl border border-emerald-200 bg-white p-5 shadow-sm transition hover:border-emerald-400 hover:shadow-md"
+            >
+              <span className="text-2xl" aria-hidden="true">
+                {card.emoji}
+              </span>
+              <h2 className="mt-2 font-semibold text-emerald-900">
+                {card.title}
+              </h2>
+              <p className="mt-1 text-sm text-emerald-700">{card.description}</p>
+            </Link>
+          ))}
+        </section>
+
         <section className="rounded-2xl border border-emerald-200 bg-white p-5">
-          <h2 className="font-semibold text-emerald-900">
-            Projets sur cet appareil
-          </h2>
+          <div className="flex items-center justify-between gap-3">
+            <h2 className="font-semibold text-emerald-900">
+              Projets sur cet appareil
+            </h2>
+            <Link
+              href="/compte/projets"
+              className="text-sm font-medium text-emerald-700 underline"
+            >
+              Voir la galerie →
+            </Link>
+          </div>
           {projects.length === 0 ? (
             <p className="mt-2 text-sm text-emerald-700">
               Aucun projet local.{" "}
@@ -45,7 +110,7 @@ export default function ComptePage() {
             </p>
           ) : (
             <ul className="mt-3 space-y-2">
-              {projects.map((p) => (
+              {projects.slice(0, 5).map((p) => (
                 <li
                   key={p.id}
                   className="flex items-center justify-between rounded-lg bg-emerald-50 px-3 py-2 text-sm"
@@ -59,24 +124,6 @@ export default function ComptePage() {
               ))}
             </ul>
           )}
-          <Link
-            href="/app"
-            className="mt-4 inline-block text-sm font-medium text-emerald-700 underline"
-          >
-            ← Retour au planificateur
-          </Link>
-        </section>
-
-        <section className="rounded-2xl border border-violet-200 bg-violet-50/80 p-5">
-          <h2 className="font-semibold text-violet-900">
-            Réalisations potager (bientôt)
-          </h2>
-          <p className="mt-2 text-sm text-violet-800 leading-relaxed">
-            Partagez photos et retours d&apos;expérience de votre potager
-            planifié avec Irrigate. La table{" "}
-            <code className="rounded bg-violet-100 px-1">garden_showcases</code>{" "}
-            est déjà prête côté Supabase pour cette V2.
-          </p>
         </section>
 
         <Footer />

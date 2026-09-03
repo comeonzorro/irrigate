@@ -2,6 +2,7 @@
 
 import type { PlanResult, PlotConfig } from "@/lib/types";
 import { getIrrigationMode } from "@/lib/data/irrigation";
+import { PressureLossAlert } from "@/components/PressureLossAlert";
 
 interface ResultsPanelProps {
   plan: PlanResult;
@@ -69,6 +70,10 @@ export function ResultsPanel({ plan, config }: ResultsPanelProps) {
             (~{plan.water.wateringCanTrips * 2} min)
           </>
         )}
+      </div>
+
+      <div className="mb-4">
+        <PressureLossAlert config={config} plan={plan} />
       </div>
 
       <h3 className="mb-2 text-sm font-semibold text-emerald-800">

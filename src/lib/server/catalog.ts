@@ -25,6 +25,7 @@ export function getPublicVarieties(
     emoji: v.emoji,
     color: v.color,
     cropId: v.cropId,
+    season: v.season,
     requiresGreenhouse: v.requiresGreenhouse,
   });
 
