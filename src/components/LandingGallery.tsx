@@ -19,8 +19,8 @@ export function LandingGallery() {
             Votre potager, partout en France
           </h2>
           <p className="mt-3 leading-relaxed text-emerald-800">
-            Balcon parisien, serre, jardin partagé ou cour de ferme : Irrigate
-            s&apos;adapte à votre espace et à votre région.
+            Balcon, serre, jardin partagé ou cour de ferme : encore plus de
+            situations où Irrigate vous accompagne.
           </p>
         </div>
 

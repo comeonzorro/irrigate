@@ -1,11 +1,17 @@
 import Image from "next/image";
 import Link from "next/link";
-import { HERO_IMAGE } from "@/lib/landing-images";
+import {
+  HERO_IMAGE,
+  LANDING_SPOTLIGHTS,
+  LANDING_STRIPS,
+} from "@/lib/landing-images";
 import { AppStoreCta } from "@/components/AppStoreCta";
 import { Footer } from "@/components/Footer";
 import { Header } from "@/components/Header";
 import { LandingGallery } from "@/components/LandingGallery";
+import { LandingImageStrip } from "@/components/LandingImageStrip";
 import { LandingScreenshots } from "@/components/LandingScreenshots";
+import { LandingSpotlightSection } from "@/components/LandingSpotlightSection";
 
 const FEATURES = [
   {
@@ -53,6 +59,8 @@ const TOOLS = [
 ] as const;
 
 export function MarketingLanding() {
+  const [spotlight1, spotlight2, spotlight3] = LANDING_SPOTLIGHTS;
+
   return (
     <>
       <Header />
@@ -104,25 +112,51 @@ export function MarketingLanding() {
         </div>
       </section>
 
-      {/* Features */}
+      {spotlight1 ? <LandingSpotlightSection spotlight={spotlight1} /> : null}
+
+      {/* Features + image latérale */}
       <section className="border-b border-emerald-200/60 bg-emerald-50/80 px-4 py-14">
-        <ul className="mx-auto grid max-w-6xl gap-6 sm:grid-cols-3">
-          {FEATURES.map((feature) => (
-            <li
-              key={feature.title}
-              className="rounded-2xl border border-emerald-200/70 bg-white p-6 shadow-sm"
-            >
-              <h2 className="text-lg font-bold text-emerald-950">
-                {feature.title}
-              </h2>
-              <p className="mt-2 text-sm leading-relaxed text-emerald-800">
-                {feature.description}
+        <div className="mx-auto grid max-w-6xl items-center gap-10 lg:grid-cols-2 lg:gap-14">
+          <ul className="grid gap-4 sm:grid-cols-1">
+            {FEATURES.map((feature) => (
+              <li
+                key={feature.title}
+                className="rounded-2xl border border-emerald-200/70 bg-white p-6 shadow-sm"
+              >
+                <h2 className="text-lg font-bold text-emerald-950">
+                  {feature.title}
+                </h2>
+                <p className="mt-2 text-sm leading-relaxed text-emerald-800">
+                  {feature.description}
+                </p>
+              </li>
+            ))}
+          </ul>
+          <div className="relative mx-auto w-full max-w-md overflow-hidden rounded-3xl border border-emerald-200/80 shadow-lg lg:max-w-none">
+            <div className="relative aspect-[4/5] lg:aspect-[3/4]">
+              <Image
+                src="/images/garden-app-dusk.png"
+                alt="Jardinier taillant des herbes au crépuscule avec l'application Irrigate"
+                fill
+                sizes="(max-width: 1024px) 100vw, 480px"
+                className="object-cover"
+              />
+              <div className="absolute inset-0 bg-gradient-to-t from-emerald-950/60 to-transparent" />
+              <p className="absolute inset-x-0 bottom-0 p-5 text-sm font-medium text-white">
+                Chaque étape du potager, guidée
               </p>
-            </li>
-          ))}
-        </ul>
+            </div>
+          </div>
+        </div>
       </section>
 
+      <LandingImageStrip images={LANDING_STRIPS} />
+
+      {spotlight2 ? (
+        <LandingSpotlightSection spotlight={spotlight2} reverse />
+      ) : null}
+
+      {/* Outils potager */}
       <section className="border-b border-emerald-200/60 bg-white px-4 py-14">
         <div className="mx-auto max-w-6xl">
           <h2 className="text-center text-2xl font-bold text-emerald-950">
@@ -158,26 +192,43 @@ export function MarketingLanding() {
       </section>
 
       <LandingScreenshots />
+
+      {spotlight3 ? <LandingSpotlightSection spotlight={spotlight3} /> : null}
+
       <LandingGallery />
 
       {/* CTA final */}
-      <section className="bg-gradient-to-br from-emerald-700 to-teal-700 px-4 py-16 text-center text-white">
-        <h2 className="text-3xl font-bold">Prêt à planter ?</h2>
-        <p className="mx-auto mt-3 max-w-lg leading-relaxed text-emerald-100">
-          Entrez votre code postal et commencez à planifier votre potager en
-          quelques minutes.
-        </p>
-        <div className="mt-8 flex flex-wrap justify-center gap-4">
-          <Link
-            href="/app"
-            className="inline-flex rounded-xl bg-white px-6 py-3 text-base font-semibold text-emerald-900 transition hover:bg-emerald-50"
-          >
-            Commencer gratuitement →
-          </Link>
-          <AppStoreCta
-            variant="button"
-            className="!bg-emerald-900 !text-white hover:!bg-emerald-950"
+      <section className="relative overflow-hidden bg-gradient-to-br from-emerald-700 to-teal-700 px-4 py-16 text-center text-white">
+        <div
+          aria-hidden="true"
+          className="absolute inset-0 opacity-20"
+        >
+          <Image
+            src="/images/community-garden-night.png"
+            alt=""
+            fill
+            sizes="100vw"
+            className="object-cover"
           />
+        </div>
+        <div className="relative">
+          <h2 className="text-3xl font-bold">Prêt à planter ?</h2>
+          <p className="mx-auto mt-3 max-w-lg leading-relaxed text-emerald-100">
+            Entrez votre code postal et commencez à planifier votre potager en
+            quelques minutes.
+          </p>
+          <div className="mt-8 flex flex-wrap justify-center gap-4">
+            <Link
+              href="/app"
+              className="inline-flex rounded-xl bg-white px-6 py-3 text-base font-semibold text-emerald-900 transition hover:bg-emerald-50"
+            >
+              Commencer gratuitement →
+            </Link>
+            <AppStoreCta
+              variant="button"
+              className="!bg-emerald-900 !text-white hover:!bg-emerald-950"
+            />
+          </div>
         </div>
       </section>
 
