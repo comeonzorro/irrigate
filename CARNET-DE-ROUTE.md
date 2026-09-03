@@ -123,18 +123,133 @@ Enregistrements ajoutés dans **Vercel DNS** :
 
 ---
 
+### Sync projets cloud
+- Local d'abord (`irrigate:project-store` / AsyncStorage)
+- Merge à la connexion via `POST /api/projects` (web) ou Supabase direct (mobile)
+- Sync debounced après chaque modification (web + mobile, sept. 2026)
+- RLS : `auth.uid() = user_id` sur `projects`
+- IDs mobile migrés en UUID pour compatibilité Supabase
+
+---
+
+## Roadmap fonctionnalités — septembre 2026
+
+> Tour des évolutions souhaitées (priorisation à valider).
+
+### 1. Carte « Mes projets »
+**Objectif :** vue d'ensemble de tous les potagers en cours (carte/liste, statut, surface, dernière modif).
+
+| | |
+|---|---|
+| **Existant** | `ProjectBar` (chips horizontales web + mobile) |
+| **À construire** | Écran `/compte` ou onglet dédié · carte avec mini-plan ou photo · filtres actif/archivé |
+| **Données** | Table `projects` Supabase déjà prête |
+| **Priorité** | 🔴 Haute — UX multi-projets |
+
+### 2. Inventaire matériel cochable
+**Objectif :** l'utilisateur coche ce qu'il possède déjà (tuyaux, goutteurs, programmateur…).
+
+| | |
+|---|---|
+| **Existant** | `ProductRecommendations` calcule le matériel nécessaire par projet |
+| **À construire** | Table `user_equipment` (user_id, product_sku, owned boolean) · UI checklist persistante |
+| **Bénéfice** | Filtrer les achats restants · personnaliser les devis |
+| **Priorité** | 🟠 Moyenne |
+
+### 3. Export PDF liste d'achats
+**Objectif :** exporter le matériel nécessaire pour un projet (PDF ou partage) pour faciliter les courses.
+
+| | |
+|---|---|
+| **Existant** | Liste produits côté API `/api/products` |
+| **À construire** | Génération PDF (ex. `@react-pdf/renderer` mobile, `jspdf` web) ou export CSV · bouton « Liste d'achats » |
+| **Contenu PDF** | Projet, dimensions, mode irrigation, qty/prix estimés, lien irrigate.fr |
+| **Priorité** | 🔴 Haute — forte valeur pratique |
+
+### 4. Emojis + légendes dans l'onglet 3D (app)
+**Objectif :** parité avec le web — toggles étiquettes (aucune / clés / toutes / légende) + emojis sur les plants.
+
+| | |
+|---|---|
+| **Existant web** | `PlotView3D.tsx` — `showPlantEmojis`, modes d'étiquettes |
+| **Existant mobile** | `PlotView3D.tsx` — plants 3D sans options d'affichage |
+| **À construire** | Porter les contrôles web vers mobile · composants Text/Html en overlay 3D |
+| **Priorité** | 🟠 Moyenne — quick win visuel |
+
+### 5. Bibliothèque de suivi de projet (journal)
+**Objectif :** documenter récoltes, difficultés, notes par potager au fil des saisons.
+
+| | |
+|---|---|
+| **Existant** | Table `garden_showcases` (partage public, V2) |
+| **À construire** | Table `project_journal` (project_id, date, type: harvest/issue/note, text, photos[]) · timeline dans fiche projet |
+| **Priorité** | 🟠 Moyenne — différenciation long terme |
+
+### 6. Pas-à-pas compost
+**Objectif :** guides interactifs pour créer/gérer un compost (étapes, ratios, calendrier retournement).
+
+| | |
+|---|---|
+| **Existant** | Rien |
+| **À construire** | Contenu éditorial + wizard (type de bac, volume, matières) · option lien avec projet potager |
+| **Priorité** | 🟢 Basse — contenu + UX wizard |
+
+### 7. Perte de pression (grandes surfaces)
+**Objectif :** alerter / ajuster le réseau d'irrigation pour projets > X m² (perte de pression, diamètre tuyaux).
+
+| | |
+|---|---|
+| **Existant** | Moteur irrigation calcule longueur/goutteurs · pas de modèle hydraulique |
+| **À construire** | Seuil configurable (ex. 20 m²) · règles diamètre/pression · warning dans `ResultsPanel` + conseil produit |
+| **Priorité** | 🟠 Moyenne — crédibilité pro |
+
+### 8. Rappel calendrier des saisons
+**Objectif :** « Quand planter quoi » selon région et mois en cours.
+
+| | |
+|---|---|
+| **Existant** | Catalogue variétés par région · `postalCode` → climat |
+| **À construire** | Calendrier mensuel (semis/plantation/récolte) par variété · notifications optionnelles · filtre « que faire ce mois-ci » |
+| **Données** | Enrichir `crops.ts` avec fenêtres de plantation |
+| **Priorité** | 🔴 Haute — engagement récurrent |
+
+### Synthèse priorités (proposition)
+
+| Priorité | Fonctionnalité | Effort estimé |
+|----------|----------------|---------------|
+| P0 (ce build+) | Sync cloud mobile ✅ | Fait sept. 2026 |
+| P1 | Export PDF achats | 2–3 j |
+| P1 | Carte mes projets | 2–3 j |
+| P1 | Calendrier saisons | 3–5 j |
+| P2 | Emojis/légendes 3D mobile | 1–2 j |
+| P2 | Inventaire matériel | 2–3 j |
+| P2 | Perte de pression | 2–4 j |
+| P2 | Journal de suivi | 3–5 j |
+| P3 | Pas-à-pas compost | 5+ j (contenu) |
+
+---
+
 ## État actuel des fonctionnalités
 
-| Fonctionnalité | Web | iOS (#11) | Cloud |
-|----------------|-----|-----------|-------|
-| Porte code postal | ✅ | Config manuelle | — |
+| Fonctionnalité | Web | iOS | Cloud |
+|----------------|-----|-----|-------|
+| Landing marketing + `/app` | ✅ | — | — |
+| Mode invité (planificateur grisé) | ✅ | — | — |
+| Porte code postal | — (réglages) | Config manuelle | — |
 | Multi-projets local | ✅ localStorage | ✅ AsyncStorage | — |
-| Sync cloud | ✅ si connecté | ✅ AuthPanel Config | ✅ API + RLS |
+| Sync cloud | ✅ debounced | ✅ Supabase direct | ✅ |
 | Auth e-mail + MDP | ✅ `/compte` | ✅ onglet Config | Supabase Auth |
+| Déconnexion header + compte | ✅ | ✅ | — |
 | Mot de passe oublié | ✅ | ✅ (lien → web) | SMTP Irrigate |
 | E-mails `@irrigate.fr` | ✅ | — | Supabase + Hostinger |
-| Magic link | ❌ retiré | ❌ | — |
-| Réalisations potager | 🔜 table prête | 🔜 | `garden_showcases` |
+| Emojis/légendes vue 3D | ✅ | ❌ | — |
+| Export PDF achats | ❌ | ❌ | — |
+| Inventaire matériel | ❌ | ❌ | — |
+| Carte mes projets | ❌ | ❌ | — |
+| Journal / récoltes | 🔜 table prête | 🔜 | `garden_showcases` |
+| Calendrier saisons | ❌ | ❌ | — |
+| Perte de pression | ❌ | ❌ | — |
+| Pas-à-pas compost | ❌ | ❌ | — |
 
 ---
 
@@ -142,8 +257,8 @@ Enregistrements ajoutés dans **Vercel DNS** :
 
 | Route | Rôle |
 |-------|------|
-| `/` | Porte ville (code postal obligatoire) |
-| `/app` | Planificateur + barre projets |
+| `/` | Landing marketing (screenshots + photos lifestyle) |
+| `/app` | Planificateur (invité grisé ou complet si connecté) |
 | `/compte` | Connexion / inscription / reset MDP |
 | `/auth/confirm` | Vérification token e-mail (signup, recovery) |
 | `/auth/callback` | Callback PKCE legacy (signup redirect) |
@@ -192,14 +307,22 @@ export IRRIGATE_SMTP_PASS="..."
 
 - [ ] Créer `contact@irrigate.fr` (cité sur le site, pas encore de boîte)
 - [ ] Template e-mail + test inscription nouveau compte externe
-- [ ] Sync cloud mobile ↔ API projets (merge à la connexion)
+- [x] Sync cloud mobile ↔ Supabase (merge à la connexion + debounce) — sept. 2026
+- [ ] Carte « Mes projets »
+- [ ] Export PDF liste d'achats
+- [ ] Inventaire matériel cochable
+- [ ] Emojis + légendes vue 3D mobile
+- [ ] Journal de suivi (récoltes / difficultés)
+- [ ] Pas-à-pas compost
+- [ ] Perte de pression grands projets (> X m²)
+- [ ] Calendrier saisons (quand planter quoi)
 - [ ] `garden_showcases` — partage réalisations potager
 - [ ] DMARC `p=quarantine` ou `p=reject` une fois deliverability OK
 - [ ] Régénérer PAT Supabase MCP si exposé dans un chat
 
 ### Git
 
-- [x] Push main à jour (dernier commit `6acb03a`)
+- [x] Push main à jour (sync cloud sept. 2026)
 - [x] Vercel prod déployée
 
 ---
@@ -264,4 +387,4 @@ Cause : bug `OrbitControls` / touch RN. Solution : `NativeCameraControls`.
 
 ---
 
-*Dernière mise à jour : 20 août 2026 — auth MDP, SMTP Irrigate, reset mot de passe OK.*
+*Dernière mise à jour : 3 septembre 2026 — sync cloud web/mobile, landing séparée, roadmap V2.*

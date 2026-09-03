@@ -26,7 +26,15 @@ export interface ProjectStore {
 export const PROJECT_STORE_KEY = "irrigate:project-store";
 
 export function createProjectId(): string {
-  return `proj_${Date.now()}_${Math.random().toString(36).slice(2, 9)}`;
+  if (typeof crypto !== "undefined" && "randomUUID" in crypto) {
+    return crypto.randomUUID();
+  }
+
+  return "xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx".replace(/[xy]/g, (char) => {
+    const random = (Math.random() * 16) | 0;
+    const value = char === "x" ? random : (random & 0x3) | 0x8;
+    return value.toString(16);
+  });
 }
 
 export function defaultProjectName(index: number): string {

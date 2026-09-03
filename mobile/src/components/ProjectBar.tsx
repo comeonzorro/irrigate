@@ -8,6 +8,7 @@ interface ProjectBarProps {
   onSelect: (id: string) => void;
   onCreate: () => void;
   onDelete: (id: string) => void;
+  syncing?: boolean;
 }
 
 export function ProjectBar({
@@ -16,11 +17,14 @@ export function ProjectBar({
   onSelect,
   onCreate,
   onDelete,
+  syncing,
 }: ProjectBarProps) {
   return (
     <View style={styles.wrap}>
       <View style={styles.header}>
-        <Text style={styles.title}>📁 Mes potagers</Text>
+        <Text style={styles.title}>
+          📁 Mes potagers{syncing ? " · sync…" : ""}
+        </Text>
         <Pressable style={styles.addBtn} onPress={onCreate}>
           <Text style={styles.addBtnText}>+ Nouveau</Text>
         </Pressable>

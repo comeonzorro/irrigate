@@ -1,10 +1,14 @@
 "use client";
 
-import { useCallback, useEffect, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import { GardenPlanner } from "@/components/GardenPlanner";
 import { GuestModeBanner } from "@/components/GuestModeBanner";
 import { ProjectBar } from "@/components/ProjectBar";
 import { useAuthSession } from "@/lib/useAuthSession";
+import {
+  deleteCloudProject,
+  syncProjectStoreWithCloud,
+} from "@/lib/projects/cloud-sync";
 import {
   createProjectId,
   defaultProjectName,
@@ -20,9 +24,7 @@ import {
   ensureDefaultProject,
   saveProjectStore,
   getActiveProject,
-  replaceProjectStore,
 } from "@/lib/projects/storage";
-import { mergeProjects } from "@/lib/projects/sync";
 import { createClient, isSupabaseConfigured } from "@/lib/supabase/client";
 import type { LocationInfo, PlotConfig } from "@/lib/types";
 
@@ -38,6 +40,10 @@ const DEFAULT_CONFIG: PlotConfig = {
   irrigationModeId: "drip_buried",
 };
 
+function storesEqual(a: ProjectStore, b: ProjectStore): boolean {
+  return JSON.stringify(a) === JSON.stringify(b);
+}
+
 export function AppShell() {
   const { user, loading: authLoading } = useAuthSession();
   const guestMode = !user;
@@ -47,6 +53,8 @@ export function AppShell() {
     activeProjectId: null,
   });
   const [syncing, setSyncing] = useState(false);
+  const syncInFlight = useRef(false);
+  const hasSyncedOnce = useRef(false);
 
   useEffect(() => {
     if (authLoading) return;
@@ -80,52 +88,47 @@ export function AppShell() {
     setReady(true);
   }, [authLoading, guestMode]);
 
-  const syncCloud = useCallback(async (current: ProjectStore) => {
-    if (guestMode || !isSupabaseConfigured()) return current;
-    const supabase = createClient();
-    if (!supabase) return current;
+  const syncCloud = useCallback(
+    async (current: ProjectStore): Promise<ProjectStore | null> => {
+      if (guestMode || !isSupabaseConfigured()) return null;
 
-    const {
-      data: { user: authUser },
-    } = await supabase.auth.getUser();
-    if (!authUser) return current;
+      const supabase = createClient();
+      if (!supabase) return null;
 
-    setSyncing(true);
-    try {
-      const res = await fetch("/api/projects");
-      if (!res.ok) return current;
-      const data = (await res.json()) as { projects?: SavedProject[] };
-      const merged = mergeProjects(current.projects, data.projects ?? []);
-      const activeId =
-        current.activeProjectId &&
-        merged.some((p) => p.id === current.activeProjectId)
-          ? current.activeProjectId
-          : merged[0]?.id ?? null;
+      const {
+        data: { user: authUser },
+      } = await supabase.auth.getUser();
+      if (!authUser) return null;
 
-      await fetch("/api/projects", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ projects: merged }),
-      });
+      if (syncInFlight.current) return null;
+      syncInFlight.current = true;
+      setSyncing(true);
 
-      const next = {
-        projects: merged.map((p) => ({ ...p, localOnly: false })),
-        activeProjectId: activeId,
-      };
-      replaceProjectStore(next.projects, next.activeProjectId);
-      return next;
-    } finally {
-      setSyncing(false);
-    }
-  }, [guestMode]);
+      try {
+        return await syncProjectStoreWithCloud(current);
+      } finally {
+        syncInFlight.current = false;
+        setSyncing(false);
+      }
+    },
+    [guestMode]
+  );
 
   useEffect(() => {
     if (!ready || guestMode) return;
-    void syncCloud(store).then((next) => {
-      if (next !== store) setStore(next);
-    });
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [ready, guestMode]);
+
+    const delay = hasSyncedOnce.current ? 1200 : 0;
+    const timer = setTimeout(() => {
+      void syncCloud(store).then((next) => {
+        hasSyncedOnce.current = true;
+        if (next && !storesEqual(next, store)) {
+          setStore(next);
+        }
+      });
+    }, delay);
+
+    return () => clearTimeout(timer);
+  }, [store, ready, guestMode, syncCloud]);
 
   const activeProject = guestMode ? null : getActiveProject(store);
 
@@ -137,6 +140,7 @@ export function AppShell() {
         config,
         location,
         updatedAt: new Date().toISOString(),
+        localOnly: true,
       };
       const projects = store.projects.map((p) =>
         p.id === updated.id ? updated : p
@@ -185,9 +189,7 @@ export function AppShell() {
       saveProjectStore(next);
       setStore(next);
 
-      if (isSupabaseConfigured()) {
-        await fetch(`/api/projects/${id}`, { method: "DELETE" });
-      }
+      await deleteCloudProject(id);
     },
     [guestMode]
   );
@@ -197,7 +199,9 @@ export function AppShell() {
       if (guestMode) return;
       const current = loadProjectStore();
       const projects = current.projects.map((p) =>
-        p.id === id ? { ...p, name, updatedAt: new Date().toISOString() } : p
+        p.id === id
+          ? { ...p, name, updatedAt: new Date().toISOString(), localOnly: true }
+          : p
       );
       const next = { ...current, projects };
       saveProjectStore(next);

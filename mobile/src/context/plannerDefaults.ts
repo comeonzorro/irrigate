@@ -70,6 +70,7 @@ export const DEFAULT_CONFIG: PlotConfig = {
 
 export interface PlannerState {
   hydrated: boolean;
+  syncing: boolean;
   projects: SavedProject[];
   activeProjectId: string | null;
   config: PlotConfig;

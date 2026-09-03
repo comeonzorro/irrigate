@@ -14,6 +14,7 @@ export default function ConfigScreen() {
   const {
     projects,
     activeProjectId,
+    syncing,
     selectProject,
     createProject,
     deleteProject,
@@ -29,6 +30,7 @@ export default function ConfigScreen() {
         <ProjectBar
           projects={projects}
           activeProjectId={activeProjectId}
+          syncing={syncing}
           onSelect={(id) => void selectProject(id)}
           onCreate={() => void createProject()}
           onDelete={(id) => {

@@ -3,7 +3,7 @@ module.exports = {
   name: "Irrigate",
   slug: "irrigate",
   owner: "leo_theoffnote",
-  version: "1.2",
+  version: "1.3",
   orientation: "portrait",
   icon: "./assets/icon.png",
   userInterfaceStyle: "light",

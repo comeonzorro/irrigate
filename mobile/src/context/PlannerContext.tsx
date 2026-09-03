@@ -30,8 +30,17 @@ import {
   type ProjectStore,
   type SavedProject,
 } from "../lib/projectStorage";
+import {
+  deleteCloudProject,
+  syncProjectStoreWithCloud,
+} from "../lib/projectSync";
+import { createClient, isSupabaseConfigured } from "../lib/supabase";
 
 const PlannerContext = createContext<PlannerContextValue | null>(null);
+
+function storesEqual(a: ProjectStore, b: ProjectStore): boolean {
+  return JSON.stringify(a) === JSON.stringify(b);
+}
 
 export function PlannerProvider({ children }: { children: ReactNode }) {
   const [hydrated, setHydrated] = useState(false);
@@ -39,6 +48,7 @@ export function PlannerProvider({ children }: { children: ReactNode }) {
     projects: [],
     activeProjectId: null,
   });
+  const [syncing, setSyncing] = useState(false);
   const [config, setConfig] = useState<PlotConfig>(DEFAULT_CONFIG);
   const [location, setLocation] = useState<PlannerContextValue["location"]>(
     null
@@ -63,11 +73,45 @@ export function PlannerProvider({ children }: { children: ReactNode }) {
   const [locating, setLocating] = useState(false);
   const [postalError, setPostalError] = useState<string | null>(null);
   const skipSaveRef = useRef(false);
+  const syncInFlight = useRef(false);
+  const hasSyncedOnce = useRef(false);
 
   const applyProject = useCallback((project: SavedProject) => {
     skipSaveRef.current = true;
     setConfig(project.config);
     setLocation(project.location);
+  }, []);
+
+  const applyStore = useCallback(
+    (store: ProjectStore) => {
+      setProjectStore(store);
+      const active = getActiveProject(store);
+      if (active) applyProject(active);
+    },
+    [applyProject]
+  );
+
+  const syncCloud = useCallback(async (current: ProjectStore) => {
+    if (!isSupabaseConfigured()) return null;
+
+    const supabase = createClient();
+    if (!supabase) return null;
+
+    const {
+      data: { user },
+    } = await supabase.auth.getUser();
+    if (!user) return null;
+
+    if (syncInFlight.current) return null;
+    syncInFlight.current = true;
+    setSyncing(true);
+
+    try {
+      return await syncProjectStoreWithCloud(current);
+    } finally {
+      syncInFlight.current = false;
+      setSyncing(false);
+    }
   }, []);
 
   useEffect(() => {
@@ -84,12 +128,60 @@ export function PlannerProvider({ children }: { children: ReactNode }) {
         store = { projects: [project], activeProjectId: project.id };
         await saveProjectStore(store);
       }
-      setProjectStore(store);
-      const active = getActiveProject(store);
-      if (active) applyProject(active);
+
+      const synced = await syncCloud(store);
+      if (synced && !storesEqual(synced, store)) {
+        await saveProjectStore(synced);
+        store = synced;
+      }
+
+      applyStore(store);
+      hasSyncedOnce.current = true;
       setHydrated(true);
     })();
-  }, [applyProject]);
+  }, [applyStore, syncCloud]);
+
+  useEffect(() => {
+    if (!isSupabaseConfigured()) return;
+
+    const supabase = createClient();
+    if (!supabase) return;
+
+    const {
+      data: { subscription },
+    } = supabase.auth.onAuthStateChange((event) => {
+      if (event === "SIGNED_IN" || event === "TOKEN_REFRESHED") {
+        void (async () => {
+          const store = await loadProjectStore();
+          const synced = await syncCloud(store);
+          if (synced) {
+            await saveProjectStore(synced);
+            applyStore(synced);
+          }
+        })();
+      }
+    });
+
+    return () => subscription.unsubscribe();
+  }, [applyStore, syncCloud]);
+
+  useEffect(() => {
+    if (!hydrated) return;
+
+    const delay = hasSyncedOnce.current ? 1200 : 0;
+    const timer = setTimeout(() => {
+      void (async () => {
+        const synced = await syncCloud(projectStore);
+        hasSyncedOnce.current = true;
+        if (synced && !storesEqual(synced, projectStore)) {
+          await saveProjectStore(synced);
+          applyStore(synced);
+        }
+      })();
+    }, delay);
+
+    return () => clearTimeout(timer);
+  }, [projectStore, hydrated, syncCloud, applyStore]);
 
   const persistActiveProject = useCallback(
     async (nextConfig = config, nextLocation = location) => {
@@ -105,6 +197,7 @@ export function PlannerProvider({ children }: { children: ReactNode }) {
         config: nextConfig,
         location: nextLocation,
         updatedAt: new Date().toISOString(),
+        localOnly: true,
       };
       const projects = store.projects.map((p) =>
         p.id === updated.id ? updated : p
@@ -164,10 +257,9 @@ export function PlannerProvider({ children }: { children: ReactNode }) {
       if (!project) return;
       const next = { ...store, activeProjectId: projectId };
       await saveProjectStore(next);
-      setProjectStore(next);
-      applyProject(project);
+      applyStore(next);
     },
-    [applyProject]
+    [applyStore]
   );
 
   const createProject = useCallback(async () => {
@@ -188,9 +280,8 @@ export function PlannerProvider({ children }: { children: ReactNode }) {
       activeProjectId: project.id,
     };
     await saveProjectStore(next);
-    setProjectStore(next);
-    applyProject(project);
-  }, [applyProject, config, location]);
+    applyStore(next);
+  }, [applyStore, config, location]);
 
   const deleteProject = useCallback(
     async (projectId: string) => {
@@ -202,11 +293,10 @@ export function PlannerProvider({ children }: { children: ReactNode }) {
       }
       const next = { projects, activeProjectId };
       await saveProjectStore(next);
-      setProjectStore(next);
-      const active = getActiveProject(next);
-      if (active) applyProject(active);
+      applyStore(next);
+      await deleteCloudProject(projectId);
     },
-    [applyProject]
+    [applyStore]
   );
 
   useEffect(() => {
@@ -280,6 +370,7 @@ export function PlannerProvider({ children }: { children: ReactNode }) {
   const value = useMemo<PlannerContextValue>(
     () => ({
       hydrated,
+      syncing,
       projects: projectStore.projects,
       activeProjectId: projectStore.activeProjectId,
       config,
@@ -304,6 +395,7 @@ export function PlannerProvider({ children }: { children: ReactNode }) {
     }),
     [
       hydrated,
+      syncing,
       projectStore,
       config,
       location,
