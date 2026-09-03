@@ -1,5 +1,6 @@
 import Link from "next/link";
 import { AppStoreCta } from "@/components/AppStoreCta";
+import { AuthNav } from "@/components/AuthNav";
 
 export function Header() {
   return (
@@ -18,12 +19,7 @@ export function Header() {
           >
             Planificateur
           </Link>
-          <Link
-            href="/compte"
-            className="hidden text-emerald-200 hover:text-white md:inline"
-          >
-            Mon compte
-          </Link>
+          <AuthNav />
           <AppStoreCta
             variant="button"
             className="!bg-white !px-3 !py-2 !text-emerald-900 hover:!bg-emerald-50 sm:!px-4"

@@ -24,6 +24,7 @@ import { IrrigationSolutionsGuide } from "@/components/IrrigationSolutionsGuide"
 import { ProductRecommendations } from "@/components/ProductRecommendations";
 import { AppStoreCta } from "@/components/AppStoreCta";
 import { Footer } from "@/components/Footer";
+import { PlannerLock } from "@/components/PlannerLock";
 
 const PlotView3D = dynamic(
   () => import("@/components/PlotView3D").then((m) => m.PlotView3D),
@@ -104,6 +105,10 @@ interface GardenPlannerProps {
   onPersist?: (config: PlotConfig, location: LocationInfo | null) => void;
   /** Aperçu flouté derrière la porte ville — pas de sauvegarde */
   previewMode?: boolean;
+  /** Intégré dans /app — pas de header/footer dupliqués */
+  embedded?: boolean;
+  /** Mode invité : plan vide, contrôles grisés */
+  guestMode?: boolean;
 }
 
 export function GardenPlanner({
@@ -111,9 +116,13 @@ export function GardenPlanner({
   initialLocation = null,
   onPersist,
   previewMode = false,
+  embedded = false,
+  guestMode = false,
 }: GardenPlannerProps = {}) {
   const isMobile = useMediaQuery("(max-width: 767px)");
-  const [config, setConfig] = useState<PlotConfig>(initialConfig ?? DEFAULT_CONFIG);
+  const [config, setConfig] = useState<PlotConfig>(
+    guestMode ? DEFAULT_CONFIG : (initialConfig ?? DEFAULT_CONFIG)
+  );
   const [viewMode, setViewMode] = useState<ViewMode>("both");
   const [location, setLocation] = useState<LocationInfo | null>(initialLocation);
   const [plan, setPlan] = useState<PlanResult>(EMPTY_PLAN);
@@ -130,9 +139,13 @@ export function GardenPlanner({
   const [varietiesLoading, setVarietiesLoading] = useState(false);
   const [productsLoading, setProductsLoading] = useState(false);
 
-  const updateConfig = useCallback((patch: Partial<PlotConfig>) => {
-    setConfig((prev) => ({ ...prev, ...patch }));
-  }, []);
+  const updateConfig = useCallback(
+    (patch: Partial<PlotConfig>) => {
+      if (guestMode || previewMode) return;
+      setConfig((prev) => ({ ...prev, ...patch }));
+    },
+    [guestMode, previewMode]
+  );
 
   useEffect(() => {
     if (isMobile && viewMode === "both") {
@@ -141,6 +154,7 @@ export function GardenPlanner({
   }, [isMobile, viewMode]);
 
   useEffect(() => {
+    if (guestMode || previewMode) return;
     let cancelled = false;
     setVarietiesLoading(true);
     fetchVarieties(
@@ -165,9 +179,10 @@ export function GardenPlanner({
     return () => {
       cancelled = true;
     };
-  }, [config.regionId, config.sunExposure, config.postalCode, config.hasGreenhouse]);
+  }, [config.regionId, config.sunExposure, config.postalCode, config.hasGreenhouse, guestMode, previewMode]);
 
   useEffect(() => {
+    if (guestMode || previewMode) return;
     let cancelled = false;
     const timer = setTimeout(async () => {
       setPlanLoading(true);
@@ -183,9 +198,10 @@ export function GardenPlanner({
       cancelled = true;
       clearTimeout(timer);
     };
-  }, [config]);
+  }, [config, guestMode, previewMode]);
 
   useEffect(() => {
+    if (guestMode || previewMode) return;
     let cancelled = false;
     const timer = setTimeout(async () => {
       setProductsLoading(true);
@@ -198,19 +214,25 @@ export function GardenPlanner({
       cancelled = true;
       clearTimeout(timer);
     };
-  }, [config]);
+  }, [config, guestMode, previewMode]);
 
   useEffect(() => {
-    if (previewMode || !onPersist) return;
+    if (previewMode || guestMode || !onPersist) return;
     const timer = setTimeout(() => {
       onPersist(config, location);
     }, 400);
     return () => clearTimeout(timer);
-  }, [config, location, onPersist, previewMode]);
+  }, [config, location, onPersist, previewMode, guestMode]);
+
+  const showChrome = !previewMode && !embedded;
+  const locked = guestMode || previewMode;
+  const lockHint = guestMode
+    ? "Connectez-vous pour utiliser cette section"
+    : undefined;
 
   return (
     <>
-      {!previewMode ? (
+      {!previewMode && !embedded ? (
         <a
           href="#main-content"
           className="sr-only focus:not-sr-only focus:absolute focus:left-4 focus:top-4 focus:z-50 focus:rounded-lg focus:bg-emerald-700 focus:px-4 focus:py-2 focus:text-white"
@@ -218,25 +240,27 @@ export function GardenPlanner({
           Aller au contenu principal
         </a>
       ) : null}
-      {!previewMode ? <Header /> : null}
+      {!previewMode && !embedded ? <Header /> : null}
       <main
         id={previewMode ? undefined : "main-content"}
-        className={`mx-auto max-w-6xl flex-1 px-4 ${previewMode ? "py-4" : "py-8"}`}
+        className={`mx-auto max-w-6xl flex-1 px-4 ${previewMode || embedded ? "py-4" : "py-8"}`}
         aria-hidden={previewMode}
       >
         <div className="mb-8 rounded-2xl bg-gradient-to-r from-emerald-800 to-emerald-600 p-6 text-white shadow-lg">
           <div className="flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
             <div>
               <h2 className="text-xl font-semibold">
-                Votre potager, votre arrosage, votre récolte
+                {guestMode
+                  ? "Aperçu du planificateur"
+                  : "Votre potager, votre arrosage, votre récolte"}
               </h2>
               <p className="mt-2 max-w-2xl text-emerald-100">
-                Planifiez votre parcelle en quelques clics. Entrez votre code
-                postal, choisissez vos cultures et visualisez le réseau
-                d&apos;irrigation en 2D ou 3D.
+                {guestMode
+                  ? "Créez un compte gratuit pour configurer votre parcelle, choisir vos cultures et visualiser l'irrigation en 2D ou 3D."
+                  : "Planifiez votre parcelle en quelques clics. Entrez votre code postal, choisissez vos cultures et visualisez le réseau d'irrigation en 2D ou 3D."}
               </p>
             </div>
-            {!previewMode ? (
+            {!previewMode && !guestMode ? (
               <AppStoreCta
                 variant="button"
                 className="shrink-0 !bg-white !text-emerald-900 hover:!bg-emerald-50"
@@ -253,28 +277,34 @@ export function GardenPlanner({
 
         <div className="grid gap-6 lg:grid-cols-2">
           <div className="space-y-6">
-            <SettingsPanel
-              config={config}
-              location={location}
-              onChange={updateConfig}
-              onLocation={setLocation}
-            />
-            <PlotSetup config={config} onChange={updateConfig} />
-            <CropSelector
-              config={config}
-              varieties={varieties}
-              recommended={recommendedVarieties}
-              regionLabel={
-                location
-                  ? `${location.cityHint} · ${location.regionName}`
-                  : varietiesRegionLabel
-              }
-              loading={varietiesLoading}
-              onChange={(selectedVarieties) =>
-                updateConfig({ selectedVarieties })
-              }
-            />
-            {config.selectedVarieties.length > 0 && (
+            <PlannerLock locked={locked} hint={lockHint}>
+              <SettingsPanel
+                config={config}
+                location={location}
+                onChange={updateConfig}
+                onLocation={guestMode ? () => {} : setLocation}
+              />
+            </PlannerLock>
+            <PlannerLock locked={locked} hint={lockHint}>
+              <PlotSetup config={config} onChange={updateConfig} />
+            </PlannerLock>
+            <PlannerLock locked={locked} hint={lockHint}>
+              <CropSelector
+                config={config}
+                varieties={varieties}
+                recommended={recommendedVarieties}
+                regionLabel={
+                  location
+                    ? `${location.cityHint} · ${location.regionName}`
+                    : varietiesRegionLabel
+                }
+                loading={varietiesLoading}
+                onChange={(selectedVarieties) =>
+                  updateConfig({ selectedVarieties })
+                }
+              />
+            </PlannerLock>
+            {!guestMode && config.selectedVarieties.length > 0 && (
               <LayoutAdviceBanner
                 advice={plan.layoutAdvice}
                 config={config}
@@ -290,85 +320,126 @@ export function GardenPlanner({
                 }
               />
             )}
-            <IrrigationPanel
-              config={config}
-              onChange={(irrigationModeId) =>
-                updateConfig({ irrigationModeId })
-              }
-            />
+            <PlannerLock locked={locked} hint={lockHint}>
+              <IrrigationPanel
+                config={config}
+                onChange={(irrigationModeId) =>
+                  updateConfig({ irrigationModeId })
+                }
+              />
+            </PlannerLock>
           </div>
 
           <div className="space-y-6">
-            <div
-              role="tablist"
-              aria-label="Mode d'affichage du plan"
-              className="flex flex-wrap gap-2"
-            >
-              {(
-                [
-                  { id: "2d" as const, label: "Plan 2D" },
-                  { id: "3d" as const, label: "Vue 3D" },
-                  ...(isMobile
-                    ? []
-                    : [{ id: "both" as const, label: "Les deux" }]),
-                ] as const
-              ).map((tab) => (
-                <button
-                  key={tab.id}
-                  type="button"
-                  role="tab"
-                  aria-selected={viewMode === tab.id}
-                  onClick={() => setViewMode(tab.id)}
-                  className={`rounded-full px-4 py-2 text-sm font-medium transition focus:outline-none focus:ring-2 focus:ring-emerald-400 focus:ring-offset-2 ${
-                    viewMode === tab.id
-                      ? "bg-emerald-700 text-white"
-                      : "bg-white text-emerald-800 border border-emerald-200 hover:border-emerald-400"
-                  }`}
-                >
-                  {tab.label}
-                </button>
-              ))}
-            </div>
+            <PlannerLock locked={locked}>
+              <div
+                role="tablist"
+                aria-label="Mode d'affichage du plan"
+                className="flex flex-wrap gap-2"
+              >
+                {(
+                  [
+                    { id: "2d" as const, label: "Plan 2D" },
+                    { id: "3d" as const, label: "Vue 3D" },
+                    ...(isMobile
+                      ? []
+                      : [{ id: "both" as const, label: "Les deux" }]),
+                  ] as const
+                ).map((tab) => (
+                  <button
+                    key={tab.id}
+                    type="button"
+                    role="tab"
+                    aria-selected={viewMode === tab.id}
+                    onClick={() => setViewMode(tab.id)}
+                    className={`rounded-full px-4 py-2 text-sm font-medium transition focus:outline-none focus:ring-2 focus:ring-emerald-400 focus:ring-offset-2 ${
+                      viewMode === tab.id
+                        ? "bg-emerald-700 text-white"
+                        : "bg-white text-emerald-800 border border-emerald-200 hover:border-emerald-400"
+                    }`}
+                  >
+                    {tab.label}
+                  </button>
+                ))}
+              </div>
+            </PlannerLock>
 
             {(viewMode === "2d" || viewMode === "both") && (
-              <PlotGrid
-                plan={plan}
-                config={config}
-                varietyDisplay={varietyDisplay}
-                widthM={config.widthM}
-                lengthM={config.lengthM}
-              />
+              <div className="relative">
+                {guestMode ? (
+                  <div className="flex min-h-[280px] flex-col items-center justify-center rounded-2xl border-2 border-dashed border-emerald-300 bg-emerald-50/60 p-8 text-center">
+                    <p className="text-4xl" aria-hidden="true">
+                      🌱
+                    </p>
+                    <p className="mt-3 text-lg font-semibold text-emerald-900">
+                      Votre plan apparaîtra ici
+                    </p>
+                    <p className="mt-2 max-w-xs text-sm text-emerald-700">
+                      Connectez-vous pour dessiner votre parcelle et visualiser
+                      le réseau d&apos;irrigation.
+                    </p>
+                  </div>
+                ) : (
+                  <PlotGrid
+                    plan={plan}
+                    config={config}
+                    varietyDisplay={varietyDisplay}
+                    widthM={config.widthM}
+                    lengthM={config.lengthM}
+                  />
+                )}
+              </div>
             )}
 
             {(viewMode === "3d" || viewMode === "both") && !previewMode ? (
-              <PlotView3D
-                plan={plan}
-                config={config}
-                varietyDisplay={varietyDisplay}
-                widthM={config.widthM}
-                lengthM={config.lengthM}
-              />
+              guestMode ? (
+                <div className="flex h-[420px] flex-col items-center justify-center rounded-xl border-2 border-dashed border-emerald-300 bg-emerald-50/60 p-8 text-center">
+                  <p className="text-4xl" aria-hidden="true">
+                    🏗️
+                  </p>
+                  <p className="mt-3 text-lg font-semibold text-emerald-900">
+                    Vue 3D disponible après connexion
+                  </p>
+                  <p className="mt-2 max-w-xs text-sm text-emerald-700">
+                    Explorez votre installation enterrée en trois dimensions.
+                  </p>
+                </div>
+              ) : (
+                <PlotView3D
+                  plan={plan}
+                  config={config}
+                  varietyDisplay={varietyDisplay}
+                  widthM={config.widthM}
+                  lengthM={config.lengthM}
+                />
+              )
             ) : null}
 
-            <ResultsPanel plan={plan} config={config} />
+            <PlannerLock locked={locked} hint={lockHint}>
+              <ResultsPanel plan={plan} config={config} />
+            </PlannerLock>
           </div>
         </div>
 
         <div className="mt-6 grid items-start gap-6 lg:grid-cols-2">
-          <ProductRecommendations
-            products={products}
-            loading={productsLoading}
-            regionName={location?.regionName}
-          />
-          <IrrigationSolutionsGuide
-            config={config}
-            onSelect={(irrigationModeId) =>
-              updateConfig({ irrigationModeId })
-            }
-          />
+          <PlannerLock locked={locked} hint={lockHint}>
+            <ProductRecommendations
+              products={products}
+              loading={productsLoading}
+              regionName={location?.regionName}
+            />
+          </PlannerLock>
+          <PlannerLock locked={locked} hint={lockHint}>
+            <IrrigationSolutionsGuide
+              config={config}
+              onSelect={(irrigationModeId) =>
+                updateConfig({ irrigationModeId })
+              }
+            />
+          </PlannerLock>
         </div>
 
-        {!previewMode ? <Footer /> : null}
+        {showChrome ? <Footer /> : null}
       </main>
     </>
   );

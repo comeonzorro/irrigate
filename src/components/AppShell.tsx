@@ -2,7 +2,9 @@
 
 import { useCallback, useEffect, useState } from "react";
 import { GardenPlanner } from "@/components/GardenPlanner";
+import { GuestModeBanner } from "@/components/GuestModeBanner";
 import { ProjectBar } from "@/components/ProjectBar";
+import { useAuthSession } from "@/lib/useAuthSession";
 import {
   createProjectId,
   defaultProjectName,
@@ -24,7 +26,21 @@ import { mergeProjects } from "@/lib/projects/sync";
 import { createClient, isSupabaseConfigured } from "@/lib/supabase/client";
 import type { LocationInfo, PlotConfig } from "@/lib/types";
 
+const DEFAULT_CONFIG: PlotConfig = {
+  widthM: 4,
+  lengthM: 6,
+  postalCode: "",
+  regionId: "france",
+  sunExposure: "S",
+  soilType: "mixte",
+  hasGreenhouse: false,
+  selectedVarieties: [],
+  irrigationModeId: "drip_buried",
+};
+
 export function AppShell() {
+  const { user, loading: authLoading } = useAuthSession();
+  const guestMode = !user;
   const [ready, setReady] = useState(false);
   const [store, setStore] = useState<ProjectStore>({
     projects: [],
@@ -33,22 +49,46 @@ export function AppShell() {
   const [syncing, setSyncing] = useState(false);
 
   useEffect(() => {
+    if (authLoading) return;
+
+    if (guestMode) {
+      setReady(true);
+      return;
+    }
+
     const city = getCityAccess();
-    if (!city) return;
-    const initial = ensureDefaultProject(city);
+    let initial = loadProjectStore();
+
+    if (!initial.projects.length) {
+      initial = city
+        ? ensureDefaultProject(city)
+        : (() => {
+            const project = createSavedProject({
+              id: createProjectId(),
+              name: defaultProjectName(1),
+              config: DEFAULT_CONFIG,
+              location: null,
+              localOnly: true,
+            });
+            const next = { projects: [project], activeProjectId: project.id };
+            saveProjectStore(next);
+            return next;
+          })();
+    }
+
     setStore(initial);
     setReady(true);
-  }, []);
+  }, [authLoading, guestMode]);
 
   const syncCloud = useCallback(async (current: ProjectStore) => {
-    if (!isSupabaseConfigured()) return current;
+    if (guestMode || !isSupabaseConfigured()) return current;
     const supabase = createClient();
     if (!supabase) return current;
 
     const {
-      data: { user },
+      data: { user: authUser },
     } = await supabase.auth.getUser();
-    if (!user) return current;
+    if (!authUser) return current;
 
     setSyncing(true);
     try {
@@ -68,27 +108,30 @@ export function AppShell() {
         body: JSON.stringify({ projects: merged }),
       });
 
-      const next = { projects: merged.map((p) => ({ ...p, localOnly: false })), activeProjectId: activeId };
+      const next = {
+        projects: merged.map((p) => ({ ...p, localOnly: false })),
+        activeProjectId: activeId,
+      };
       replaceProjectStore(next.projects, next.activeProjectId);
       return next;
     } finally {
       setSyncing(false);
     }
-  }, []);
+  }, [guestMode]);
 
   useEffect(() => {
-    if (!ready) return;
+    if (!ready || guestMode) return;
     void syncCloud(store).then((next) => {
       if (next !== store) setStore(next);
     });
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [ready]);
+  }, [ready, guestMode]);
 
-  const activeProject = getActiveProject(store);
+  const activeProject = guestMode ? null : getActiveProject(store);
 
   const persistProject = useCallback(
     (config: PlotConfig, location: LocationInfo | null) => {
-      if (!activeProject) return;
+      if (guestMode || !activeProject) return;
       const updated: SavedProject = {
         ...activeProject,
         config,
@@ -102,7 +145,7 @@ export function AppShell() {
       saveProjectStore(next);
       setStore(next);
     },
-    [activeProject, store]
+    [activeProject, guestMode, store]
   );
 
   const handleSelect = useCallback((id: string) => {
@@ -113,14 +156,14 @@ export function AppShell() {
   }, []);
 
   const handleCreate = useCallback(() => {
+    if (guestMode) return;
     const city = getCityAccess();
-    if (!city) return;
     const current = loadProjectStore();
     const project = createSavedProject({
       id: createProjectId(),
       name: defaultProjectName(current.projects.length + 1),
-      config: configFromCityAccess(city),
-      location: locationFromCityAccess(city),
+      config: city ? configFromCityAccess(city) : DEFAULT_CONFIG,
+      location: city ? locationFromCityAccess(city) : null,
       localOnly: true,
     });
     const next = {
@@ -129,10 +172,11 @@ export function AppShell() {
     };
     saveProjectStore(next);
     setStore(next);
-  }, []);
+  }, [guestMode]);
 
   const handleDelete = useCallback(
     async (id: string) => {
+      if (guestMode) return;
       const current = loadProjectStore();
       const projects = current.projects.filter((p) => p.id !== id);
       let activeProjectId = current.activeProjectId;
@@ -145,23 +189,44 @@ export function AppShell() {
         await fetch(`/api/projects/${id}`, { method: "DELETE" });
       }
     },
-    []
+    [guestMode]
   );
 
-  const handleRename = useCallback((id: string, name: string) => {
-    const current = loadProjectStore();
-    const projects = current.projects.map((p) =>
-      p.id === id ? { ...p, name, updatedAt: new Date().toISOString() } : p
-    );
-    const next = { ...current, projects };
-    saveProjectStore(next);
-    setStore(next);
-  }, []);
+  const handleRename = useCallback(
+    (id: string, name: string) => {
+      if (guestMode) return;
+      const current = loadProjectStore();
+      const projects = current.projects.map((p) =>
+        p.id === id ? { ...p, name, updatedAt: new Date().toISOString() } : p
+      );
+      const next = { ...current, projects };
+      saveProjectStore(next);
+      setStore(next);
+    },
+    [guestMode]
+  );
 
-  if (!ready || !activeProject) {
+  if (authLoading || (!guestMode && !ready)) {
     return (
       <div className="flex min-h-[50vh] items-center justify-center text-emerald-700">
         Chargement…
+      </div>
+    );
+  }
+
+  if (guestMode) {
+    return (
+      <>
+        <GuestModeBanner />
+        <GardenPlanner guestMode embedded />
+      </>
+    );
+  }
+
+  if (!activeProject) {
+    return (
+      <div className="flex min-h-[50vh] items-center justify-center text-emerald-700">
+        Chargement du projet…
       </div>
     );
   }
@@ -182,6 +247,7 @@ export function AppShell() {
         initialConfig={activeProject.config}
         initialLocation={activeProject.location}
         onPersist={persistProject}
+        embedded
       />
     </>
   );

@@ -1,8 +1,9 @@
 "use client";
 
 import { useCallback, useEffect, useState } from "react";
-import { createClient, isSupabaseConfigured } from "@/lib/supabase/client";
-import type { User } from "@supabase/supabase-js";
+import { useRouter } from "next/navigation";
+import { createClient } from "@/lib/supabase/client";
+import { useAuthSession } from "@/lib/useAuthSession";
 
 type AuthMode = "sign-in" | "sign-up" | "forgot-password" | "update-password";
 
@@ -16,15 +17,15 @@ function validatePassword(password: string): string | null {
 }
 
 export function AuthPanel() {
+  const router = useRouter();
+  const { user, loading: authLoading, signOut, configured } = useAuthSession();
   const [mode, setMode] = useState<AuthMode>("sign-in");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [confirmPassword, setConfirmPassword] = useState("");
-  const [user, setUser] = useState<User | null>(null);
   const [loading, setLoading] = useState(false);
   const [message, setMessage] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
-  const configured = isSupabaseConfigured();
 
   useEffect(() => {
     const params = new URLSearchParams(window.location.search);
@@ -35,7 +36,6 @@ export function AuthPanel() {
     if (!supabase) return;
 
     void supabase.auth.getSession().then(({ data }) => {
-      setUser(data.session?.user ?? null);
       if (!data.session) {
         setError(
           "Session expirée ou lien déjà utilisé — demandez un nouveau lien de réinitialisation."
@@ -48,15 +48,14 @@ export function AuthPanel() {
     const supabase = createClient();
     if (!supabase) return;
 
-    supabase.auth.getUser().then(({ data }) => setUser(data.user));
     const {
       data: { subscription },
-    } = supabase.auth.onAuthStateChange((event, session) => {
-      setUser(session?.user ?? null);
+    } = supabase.auth.onAuthStateChange((event) => {
       if (event === "PASSWORD_RECOVERY") {
         setMode("update-password");
       }
     });
+
     return () => subscription.unsubscribe();
   }, []);
 
@@ -77,7 +76,7 @@ export function AuthPanel() {
 
     setLoading(true);
     clearFeedback();
-    const { error: signInError } = await supabase.auth.signInWithPassword({
+    const { data, error: signInError } = await supabase.auth.signInWithPassword({
       email: email.trim(),
       password,
     });
@@ -93,8 +92,10 @@ export function AuthPanel() {
     }
 
     setPassword("");
+    setEmail(data.user?.email ?? email.trim());
     setMessage("Connexion réussie.");
-  }, [clearFeedback, email, password]);
+    router.refresh();
+  }, [clearFeedback, email, password, router]);
 
   const signUp = useCallback(async () => {
     const supabase = createClient();
@@ -131,6 +132,7 @@ export function AuthPanel() {
 
     if (data.session) {
       setMessage("Compte créé — vous êtes connecté.");
+      router.refresh();
       return;
     }
 
@@ -138,7 +140,7 @@ export function AuthPanel() {
       "Compte créé. Consultez votre e-mail pour confirmer votre adresse, puis connectez-vous."
     );
     setMode("sign-in");
-  }, [clearFeedback, confirmPassword, email, password]);
+  }, [clearFeedback, confirmPassword, email, password, router]);
 
   const sendPasswordReset = useCallback(async () => {
     const supabase = createClient();
@@ -205,16 +207,23 @@ export function AuthPanel() {
       window.history.replaceState({}, "", "/compte");
     }
     setMessage("Mot de passe mis à jour.");
-  }, [clearFeedback, confirmPassword, password]);
+    router.refresh();
+  }, [clearFeedback, confirmPassword, password, router]);
 
-  const signOut = useCallback(async () => {
-    const supabase = createClient();
-    if (!supabase) return;
-    await supabase.auth.signOut();
-    setUser(null);
-    setMode("sign-in");
+  const handleSignOut = useCallback(async () => {
+    setLoading(true);
     clearFeedback();
-  }, [clearFeedback]);
+    const signOutError = await signOut();
+    setLoading(false);
+
+    if (signOutError) {
+      setError(signOutError);
+      return;
+    }
+
+    setMode("sign-in");
+    setMessage("Vous êtes déconnecté.");
+  }, [clearFeedback, signOut]);
 
   if (!configured) {
     return (
@@ -233,11 +242,34 @@ export function AuthPanel() {
     );
   }
 
+  if (authLoading) {
+    return (
+      <section className="rounded-2xl border border-emerald-200 bg-white p-5">
+        <p className="text-sm text-emerald-700">Vérification de la session…</p>
+      </section>
+    );
+  }
+
   if (user && mode !== "update-password") {
     return (
       <section className="rounded-2xl border border-emerald-200 bg-white p-5">
         <h2 className="font-semibold text-emerald-900">Connecté</h2>
         <p className="mt-1 text-sm text-emerald-700">{user.email}</p>
+        <p className="mt-2 text-sm text-emerald-600">
+          Vos potagers sont synchronisés entre le site et l&apos;application iOS.
+        </p>
+
+        {message ? (
+          <p className="mt-3 text-sm text-emerald-700" role="status">
+            {message}
+          </p>
+        ) : null}
+        {error ? (
+          <p className="mt-3 text-sm text-red-700" role="alert">
+            {error}
+          </p>
+        ) : null}
+
         <div className="mt-4 flex flex-wrap gap-2">
           <button
             type="button"
@@ -251,10 +283,11 @@ export function AuthPanel() {
           </button>
           <button
             type="button"
-            onClick={signOut}
-            className="rounded-lg border border-emerald-300 px-4 py-2 text-sm font-medium text-emerald-800 hover:bg-emerald-50"
+            onClick={() => void handleSignOut()}
+            disabled={loading}
+            className="rounded-lg bg-emerald-700 px-4 py-2 text-sm font-semibold text-white hover:bg-emerald-800 disabled:opacity-60"
           >
-            Se déconnecter
+            {loading ? "Déconnexion…" : "Se déconnecter"}
           </button>
         </div>
       </section>
