@@ -25,6 +25,14 @@ export const metadata: Metadata = {
     siteName: "Irrigate.fr",
     locale: "fr_FR",
     type: "website",
+    images: [
+      {
+        url: "/images/hero-watering-couple.png",
+        width: 1600,
+        height: 900,
+        alt: "Couple arrosant leur potager avec l'application Irrigate",
+      },
+    ],
   },
 };
 
