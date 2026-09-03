@@ -1,4 +1,4 @@
-import { mergeProjects } from "@/lib/projects/sync";
+import { mergeProjects, resolveActiveProjectIdAfterRemap } from "@/lib/projects/sync";
 import { replaceProjectStore } from "@/lib/projects/storage";
 import {
   createProjectId,
@@ -39,19 +39,6 @@ export function normalizeProjectsForCloud(store: ProjectStore): ProjectStore {
   return { projects, activeProjectId };
 }
 
-function resolveActiveProjectId(
-  current: ProjectStore,
-  merged: SavedProject[]
-): string | null {
-  if (
-    current.activeProjectId &&
-    merged.some((p) => p.id === current.activeProjectId)
-  ) {
-    return current.activeProjectId;
-  }
-  return merged[0]?.id ?? null;
-}
-
 async function readApiError(res: Response): Promise<string> {
   try {
     const body = (await res.json()) as { error?: string };
@@ -81,13 +68,15 @@ export async function syncProjectStoreWithCloud(
 
   const getData = (await getRes.json()) as { projects?: SavedProject[] };
   const merged = mergeProjects(normalized.projects, getData.projects ?? []);
-  const activeProjectId = resolveActiveProjectId(normalized, merged);
 
   const postRes = await fetch("/api/projects", {
     method: "POST",
     credentials: "same-origin",
     headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({ projects: merged }),
+    body: JSON.stringify({
+      projects: merged,
+      activeProjectId: normalized.activeProjectId,
+    }),
   });
 
   if (!postRes.ok) {
@@ -98,8 +87,27 @@ export async function syncProjectStoreWithCloud(
     };
   }
 
+  const postData = (await postRes.json()) as {
+    projects?: SavedProject[];
+    activeProjectId?: string | null;
+    idRemap?: Record<string, string>;
+  };
+
+  const syncedProjects = (postData.projects ?? merged).map((p) => ({
+    ...p,
+    localOnly: false,
+  }));
+
+  const activeProjectId =
+    postData.activeProjectId ??
+    resolveActiveProjectIdAfterRemap(
+      normalized.activeProjectId,
+      postData.idRemap ?? {},
+      syncedProjects
+    );
+
   const next: ProjectStore = {
-    projects: merged.map((p) => ({ ...p, localOnly: false })),
+    projects: syncedProjects,
     activeProjectId,
   };
   replaceProjectStore(next.projects, next.activeProjectId);

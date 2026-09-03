@@ -1,6 +1,11 @@
 import { NextResponse } from "next/server";
 import { createClient } from "@/lib/supabase/server";
-import { rowToSavedProject, savedProjectToRow } from "@/lib/projects/sync";
+import {
+  isValidProjectUuid,
+  reassignForeignProjectIds,
+  rowToSavedProject,
+  savedProjectToRow,
+} from "@/lib/projects/sync";
 import type { SavedProject } from "@/lib/projects/types";
 import type { LocationInfo, PlotConfig } from "@/lib/types";
 
@@ -55,6 +60,7 @@ export async function POST(request: Request) {
 
   const body = (await request.json()) as {
     projects?: SavedProject[];
+    activeProjectId?: string | null;
     project?: {
       id?: string;
       name: string;
@@ -64,16 +70,37 @@ export async function POST(request: Request) {
   };
 
   if (body.projects?.length) {
-    const uuidRe =
-      /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i;
-    const validProjects = body.projects.filter((p) => uuidRe.test(p.id));
+    const validProjects = body.projects.filter((p) => isValidProjectUuid(p.id));
     if (validProjects.length === 0) {
       return NextResponse.json(
         { error: "Aucun projet valide à synchroniser" },
         { status: 400 }
       );
     }
-    const rows = validProjects.map((p) => savedProjectToRow(p, user.id));
+
+    const ids = validProjects.map((p) => p.id);
+    const { data: existingRows, error: lookupError } = await supabase
+      .from("projects")
+      .select("id, user_id")
+      .in("id", ids);
+
+    if (lookupError) {
+      return NextResponse.json({ error: lookupError.message }, { status: 500 });
+    }
+
+    const foreignIds = new Set(
+      (existingRows ?? [])
+        .filter((row) => row.user_id !== user.id)
+        .map((row) => row.id)
+    );
+
+    const { projects: safeProjects, idRemap } = reassignForeignProjectIds(
+      validProjects,
+      foreignIds
+    );
+
+    const rows = safeProjects.map((p) => savedProjectToRow(p, user.id));
+
     const { data, error } = await supabase
       .from("projects")
       .upsert(rows, { onConflict: "id" })
@@ -82,8 +109,21 @@ export async function POST(request: Request) {
     if (error) {
       return NextResponse.json({ error: error.message }, { status: 500 });
     }
+
+    const projects = (data ?? []).map(rowToSavedProject);
+    const remappedActive =
+      body.activeProjectId && idRemap[body.activeProjectId]
+        ? idRemap[body.activeProjectId]
+        : body.activeProjectId;
+
     return NextResponse.json({
-      projects: (data ?? []).map(rowToSavedProject),
+      projects,
+      idRemap,
+      activeProjectId:
+        remappedActive &&
+        projects.some((project) => project.id === remappedActive)
+          ? remappedActive
+          : (projects[0]?.id ?? null),
     });
   }
 
@@ -91,8 +131,20 @@ export async function POST(request: Request) {
     return NextResponse.json({ error: "Projet invalide" }, { status: 400 });
   }
 
+  let projectId = body.project.id ?? crypto.randomUUID();
+  if (isValidProjectUuid(projectId)) {
+    const { data: existing } = await supabase
+      .from("projects")
+      .select("user_id")
+      .eq("id", projectId)
+      .maybeSingle();
+    if (existing && existing.user_id !== user.id) {
+      projectId = crypto.randomUUID();
+    }
+  }
+
   const draft: SavedProject = {
-    id: body.project.id ?? crypto.randomUUID(),
+    id: projectId,
     name: body.project.name,
     config: body.project.config,
     location: body.project.location ?? null,

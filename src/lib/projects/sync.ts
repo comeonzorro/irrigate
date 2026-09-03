@@ -35,6 +35,44 @@ export function savedProjectToRow(
   };
 }
 
+const UUID_RE =
+  /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i;
+
+export function isValidProjectUuid(id: string): boolean {
+  return UUID_RE.test(id);
+}
+
+/** Évite les collisions d'id avec un autre compte (RLS upsert). */
+export function reassignForeignProjectIds(
+  projects: SavedProject[],
+  foreignIds: Set<string>
+): { projects: SavedProject[]; idRemap: Record<string, string> } {
+  const idRemap: Record<string, string> = {};
+  const next = projects.map((project) => {
+    if (!foreignIds.has(project.id)) return project;
+    const newId = crypto.randomUUID();
+    idRemap[project.id] = newId;
+    return {
+      ...project,
+      id: newId,
+      updatedAt: new Date().toISOString(),
+    };
+  });
+  return { projects: next, idRemap };
+}
+
+export function resolveActiveProjectIdAfterRemap(
+  activeProjectId: string | null,
+  idRemap: Record<string, string>,
+  projects: SavedProject[]
+): string | null {
+  if (!activeProjectId) return projects[0]?.id ?? null;
+  const remapped = idRemap[activeProjectId] ?? activeProjectId;
+  return projects.some((p) => p.id === remapped)
+    ? remapped
+    : (projects[0]?.id ?? null);
+}
+
 /** Fusionne projets locaux et cloud (le plus récent updatedAt gagne). */
 export function mergeProjects(
   local: SavedProject[],

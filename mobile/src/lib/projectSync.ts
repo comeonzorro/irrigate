@@ -90,6 +90,24 @@ function normalizeProjectsForCloud(store: ProjectStore): ProjectStore {
   return { projects, activeProjectId };
 }
 
+function reassignForeignProjectIds(
+  projects: SavedProject[],
+  foreignIds: Set<string>
+): { projects: SavedProject[]; idRemap: Record<string, string> } {
+  const idRemap: Record<string, string> = {};
+  const next = projects.map((project) => {
+    if (!foreignIds.has(project.id)) return project;
+    const newId = createProjectId();
+    idRemap[project.id] = newId;
+    return {
+      ...project,
+      id: newId,
+      updatedAt: new Date().toISOString(),
+    };
+  });
+  return { projects: next, idRemap };
+}
+
 function resolveActiveProjectId(
   current: ProjectStore,
   merged: SavedProject[]
@@ -133,12 +151,44 @@ export async function syncProjectStoreWithCloud(
   const activeProjectId = resolveActiveProjectId(normalized, merged);
 
   if (merged.length > 0) {
-    const rows = merged.map((project) => savedProjectToRow(project, user.id));
+    const ids = merged.map((project) => project.id);
+    const { data: existingRows, error: lookupError } = await supabase
+      .from("projects")
+      .select("id, user_id")
+      .in("id", ids);
+
+    if (lookupError) return null;
+
+    const foreignIds = new Set(
+      (existingRows ?? [])
+        .filter((row) => row.user_id !== user.id)
+        .map((row) => row.id)
+    );
+
+    const { projects: safeProjects, idRemap } = reassignForeignProjectIds(
+      merged,
+      foreignIds
+    );
+
+    const rows = safeProjects.map((project) => savedProjectToRow(project, user.id));
     const { error: upsertError } = await supabase
       .from("projects")
       .upsert(rows, { onConflict: "id" });
 
     if (upsertError) return null;
+
+    const remappedActive = normalized.activeProjectId
+      ? (idRemap[normalized.activeProjectId] ?? normalized.activeProjectId)
+      : null;
+
+    return {
+      projects: safeProjects.map((p) => ({ ...p, localOnly: false })),
+      activeProjectId:
+        remappedActive &&
+        safeProjects.some((project) => project.id === remappedActive)
+          ? remappedActive
+          : (safeProjects[0]?.id ?? null),
+    };
   }
 
   return {
