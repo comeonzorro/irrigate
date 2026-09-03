@@ -20,9 +20,13 @@ export function useAuthSession() {
     let active = true;
 
     const syncSession = async () => {
-      const { data } = await supabase.auth.getSession();
+      const { data, error } = await supabase.auth.getUser();
       if (!active) return;
-      setUser(data.session?.user ?? null);
+      if (error) {
+        setUser(null);
+      } else {
+        setUser(data.user ?? null);
+      }
       setLoading(false);
     };
 

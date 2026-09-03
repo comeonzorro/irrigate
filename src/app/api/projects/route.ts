@@ -12,9 +12,13 @@ export async function GET() {
 
   const {
     data: { user },
+    error: authError,
   } = await supabase.auth.getUser();
-  if (!user) {
-    return NextResponse.json({ error: "Non authentifié" }, { status: 401 });
+  if (authError || !user) {
+    return NextResponse.json(
+      { error: authError?.message ?? "Non authentifié" },
+      { status: 401 }
+    );
   }
 
   const { data, error } = await supabase
@@ -40,9 +44,13 @@ export async function POST(request: Request) {
 
   const {
     data: { user },
+    error: authError,
   } = await supabase.auth.getUser();
-  if (!user) {
-    return NextResponse.json({ error: "Non authentifié" }, { status: 401 });
+  if (authError || !user) {
+    return NextResponse.json(
+      { error: authError?.message ?? "Non authentifié" },
+      { status: 401 }
+    );
   }
 
   const body = (await request.json()) as {
@@ -56,7 +64,16 @@ export async function POST(request: Request) {
   };
 
   if (body.projects?.length) {
-    const rows = body.projects.map((p) => savedProjectToRow(p, user.id));
+    const uuidRe =
+      /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i;
+    const validProjects = body.projects.filter((p) => uuidRe.test(p.id));
+    if (validProjects.length === 0) {
+      return NextResponse.json(
+        { error: "Aucun projet valide à synchroniser" },
+        { status: 400 }
+      );
+    }
+    const rows = validProjects.map((p) => savedProjectToRow(p, user.id));
     const { data, error } = await supabase
       .from("projects")
       .upsert(rows, { onConflict: "id" })

@@ -104,7 +104,8 @@ create policy "projects_insert_own"
 
 create policy "projects_update_own"
   on public.projects for update
-  using (auth.uid() = user_id);
+  using (auth.uid() = user_id)
+  with check (auth.uid() = user_id);
 
 create policy "projects_delete_own"
   on public.projects for delete

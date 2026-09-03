@@ -53,6 +53,7 @@ export function AppShell() {
     activeProjectId: null,
   });
   const [syncing, setSyncing] = useState(false);
+  const [syncError, setSyncError] = useState<string | null>(null);
   const syncInFlight = useRef(false);
   const hasSyncedOnce = useRef(false);
 
@@ -97,15 +98,31 @@ export function AppShell() {
 
       const {
         data: { user: authUser },
+        error: authError,
       } = await supabase.auth.getUser();
-      if (!authUser) return null;
+      if (authError || !authUser) {
+        setSyncError(
+          authError?.message ?? "Session expirée — reconnectez-vous."
+        );
+        return null;
+      }
 
       if (syncInFlight.current) return null;
       syncInFlight.current = true;
       setSyncing(true);
+      setSyncError(null);
 
       try {
-        return await syncProjectStoreWithCloud(current);
+        const result = await syncProjectStoreWithCloud(current);
+        if (!result.ok) {
+          setSyncError(
+            result.status === 401
+              ? "Session expirée — déconnectez-vous puis reconnectez-vous."
+              : result.error
+          );
+          return null;
+        }
+        return result.store;
       } finally {
         syncInFlight.current = false;
         setSyncing(false);
@@ -253,6 +270,7 @@ export function AppShell() {
         onDelete={handleDelete}
         onRename={handleRename}
         syncing={syncing}
+        syncError={syncError}
         onSyncNow={handleManualSync}
       />
       <GardenPlanner

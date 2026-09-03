@@ -12,6 +12,7 @@ interface ProjectBarProps {
   onDelete: (id: string) => void;
   onRename: (id: string, name: string) => void;
   syncing?: boolean;
+  syncError?: string | null;
   onSyncNow?: () => void;
 }
 
@@ -23,6 +24,7 @@ export function ProjectBar({
   onDelete,
   onRename,
   syncing,
+  syncError,
   onSyncNow,
 }: ProjectBarProps) {
   const city = getCityAccess();
@@ -80,6 +82,12 @@ export function ProjectBar({
           </Link>
         </div>
       </div>
+
+      {syncError ? (
+        <p className="mt-2 text-xs text-red-700" role="alert">
+          ⚠️ Sync cloud : {syncError}
+        </p>
+      ) : null}
 
       {syncing ? (
         <p className="mt-2 text-xs text-emerald-600" role="status">
