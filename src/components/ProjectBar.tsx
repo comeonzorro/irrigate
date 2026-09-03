@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import type { SavedProject } from "@/lib/projects/types";
-import { getCityAccess } from "@/lib/projects/storage";
+import { clearCityAccess, getCityAccess } from "@/lib/projects/storage";
 
 interface ProjectBarProps {
   projects: SavedProject[];
@@ -36,9 +36,16 @@ export function ProjectBar({
             <p className="mt-1 text-sm text-emerald-800">
               📍 {city.cityHint} ({city.postalCode}) · {city.regionName}
               {" · "}
-              <Link href="/" className="underline underline-offset-2">
+              <button
+                type="button"
+                onClick={() => {
+                  clearCityAccess();
+                  window.location.reload();
+                }}
+                className="underline underline-offset-2"
+              >
                 Changer de ville
-              </Link>
+              </button>
             </p>
           ) : null}
         </div>

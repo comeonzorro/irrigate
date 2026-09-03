@@ -1,5 +1,5 @@
-import { CityGateLanding } from "@/components/CityGateLanding";
+import { MarketingLanding } from "@/components/MarketingLanding";
 
 export default function HomePage() {
-  return <CityGateLanding />;
+  return <MarketingLanding />;
 }

@@ -1,7 +1,6 @@
 "use client";
 
 import { useCallback, useEffect, useState } from "react";
-import { useRouter } from "next/navigation";
 import { GardenPlanner } from "@/components/GardenPlanner";
 import { ProjectBar } from "@/components/ProjectBar";
 import {
@@ -26,7 +25,6 @@ import { createClient, isSupabaseConfigured } from "@/lib/supabase/client";
 import type { LocationInfo, PlotConfig } from "@/lib/types";
 
 export function AppShell() {
-  const router = useRouter();
   const [ready, setReady] = useState(false);
   const [store, setStore] = useState<ProjectStore>({
     projects: [],
@@ -36,14 +34,11 @@ export function AppShell() {
 
   useEffect(() => {
     const city = getCityAccess();
-    if (!city) {
-      router.replace("/");
-      return;
-    }
+    if (!city) return;
     const initial = ensureDefaultProject(city);
     setStore(initial);
     setReady(true);
-  }, [router]);
+  }, []);
 
   const syncCloud = useCallback(async (current: ProjectStore) => {
     if (!isSupabaseConfigured()) return current;
