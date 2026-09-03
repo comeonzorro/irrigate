@@ -25,6 +25,7 @@ import { ProductRecommendations } from "@/components/ProductRecommendations";
 import { AppStoreCta } from "@/components/AppStoreCta";
 import { Footer } from "@/components/Footer";
 import { PlannerLock } from "@/components/PlannerLock";
+import { PlannerToolTiles } from "@/components/PlannerToolTiles";
 
 const PlotView3D = dynamic(
   () => import("@/components/PlotView3D").then((m) => m.PlotView3D),
@@ -271,6 +272,8 @@ export function GardenPlanner({
             ) : null}
           </div>
         </div>
+
+        {embedded ? <PlannerToolTiles /> : null}
 
         {planLoading && (
           <p className="sr-only" role="status" aria-live="polite">
